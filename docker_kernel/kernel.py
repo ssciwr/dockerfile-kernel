@@ -5,15 +5,17 @@ import json
 
 from ipykernel.kernelbase import Kernel
 
+# The single source of version truth
+__version__ = "0.0.1"
 
 class DockerKernel(Kernel):
     implementation = None
-    implementation_version = '1.0'
+    implementation_version = __version__
     language = 'docker'
-    language_version = '1.0'
+    language_version = docker.__version__
     language_info = {
-        "name": 'Docker',
-        'mimetype': 'text/plain',
+        "name": 'docker',
+        'mimetype': 'text/x-dockerfile-config',
         'file_extension': ".dockerfile"
     }
     banner = "Dockerfile Kernel"
