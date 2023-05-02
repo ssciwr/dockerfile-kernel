@@ -4,6 +4,26 @@ This implements a Jupyter kernel to interpret Dockerfiles.
 
 **This is currently work in progress between me and a group of students**
 
+## Installation
+
+Currently, the following prerequisites need to be met:
+
+* Linux only (?)
+* Docker needs to be installed
+* The user needs to be in the `docker` group (see e.g. https://askubuntu.com/a/739861)
+* JupyterLab needs to be installed
+
+You can then install the kernel with:
+
+```bash
+git clone https://github.com/dokempf/dockerfile-kernel.git
+cd dockerfile-kernel
+python -m pip install -e .
+python docker_kernel/install.py
+```
+
+Then, running `jupyter lab` you should be able to run the prototype.
+
 ## Links
 
 * https://jupyter-client.readthedocs.io/en/stable/wrapperkernels.html
