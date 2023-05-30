@@ -26,6 +26,21 @@ class DockerKernel(Kernel):
         self._sha1 = None
 
     def do_execute(self, code, silent, store_history=True, user_expressions=None, allow_stdin=False):
+
+        if code.startswith('%'):
+            installers = ['pip', 'pip3', 'conda', 'npm']
+            params = code.split()
+            pckg = ''
+            for p in range(2, len(params)):
+                pckg += str(params[p])
+                pckg += ' '
+
+            if params[1] == 'apt':
+                code = "RUN apt-get update && apt-get -y install " + pckg + "&& rm -rf /var/lib/apt/lists/*"
+
+            if params[1] in installers:
+                code = "RUN " + str(params[1]) + " install " + pckg
+
         if self._sha1 is not None:
             code = f"FROM {self._sha1}\n{code}"
             
