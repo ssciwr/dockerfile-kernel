@@ -4,12 +4,13 @@ import json
 
 
 from ipykernel.kernelbase import Kernel
+from metakernel import MetaKernel
 
 # The single source of version truth
 __version__ = "0.0.1"
 
-class DockerKernel(Kernel):
-    implementation = None
+class DockerKernel(MetaKernel):
+    implementation = "Dockerfile Kernel"
     implementation_version = __version__
     language = 'docker'
     language_version = docker.__version__
@@ -20,12 +21,13 @@ class DockerKernel(Kernel):
     }
     banner = "Dockerfile Kernel"
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, *args, **kwargs):
+        super(DockerKernel, self).__init__(*args, **kwargs)
         self._api = docker.APIClient(base_url='unix://var/run/docker.sock')
         self._sha1 = None
 
     def do_execute(self, code, silent, store_history=True, user_expressions=None, allow_stdin=False):
+        super(DockerKernel, self).do_execute(code, silent, store_history, user_expressions, allow_stdin)
         if self._sha1 is not None:
             code = f"FROM {self._sha1}\n{code}"
             
