@@ -1,7 +1,7 @@
 import docker
 import io
 import json
-
+from .magics import detect_magic, call_magic
 
 from ipykernel.kernelbase import Kernel
 
@@ -21,10 +21,17 @@ class DockerKernel(Kernel):
     banner = "Dockerfile Kernel"
 
     def __init__(self, *args, **kwargs):
+        super().__init__(**kwargs)
         self._api = docker.APIClient(base_url='unix://var/run/docker.sock')
         self._sha1 = None
 
     def do_execute(self, code, silent, store_history=True, user_expressions=None, allow_stdin=False):
+        magic = detect_magic(code)
+        if magic != None:
+            response = call_magic(magic)
+            self.send_response(self.iopub_socket, 'stream', {"name": "stdout", "text": response})
+            return {'status': 'ok', 'execution_count': self.execution_count, 'payload': [], 'user_expression': {}}
+
         if self._sha1 is not None:
             code = f"FROM {self._sha1}\n{code}"
             
