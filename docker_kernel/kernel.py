@@ -26,9 +26,9 @@ class DockerKernel(Kernel):
         self._sha1 = None
 
     def do_execute(self, code, silent, store_history=True, user_expressions=None, allow_stdin=False):
-        magic = detect_magic(code)
+        magic, arguments = detect_magic(code)
         if magic != None:
-            response = call_magic(magic)
+            response = call_magic(magic, arguments)
             self.send_response(self.iopub_socket, 'stream', {"name": "stdout", "text": response})
             return {'status': 'ok', 'execution_count': self.execution_count, 'payload': [], 'user_expression': {}}
 

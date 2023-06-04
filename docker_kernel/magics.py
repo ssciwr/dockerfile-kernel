@@ -11,14 +11,19 @@ def detect_magic(code: str):
     Returns
     -------
     magic: str | None
+    arguments: list[str]
     """
-    magic_present = code.lstrip().startswith("%")
+    code = code.lstrip()
+    magic_present = code.startswith("%")
     if not magic_present:
-        return None
-    # discard everything after the detected magic as well as the leading "%"
-    return code.lstrip().split(" ")[0][1:]
+        return None, []
+    
+    arguments = code.split(" ")
+    # get actual magic command, leaving only the arguments
+    magic = arguments.pop(0)[1:]
+    return magic, arguments
 
-def call_magic(magic: str):
+def call_magic(magic: str, args: list[str]):
     """Determine if a magic command is known. If so, return its function.
 
     Parameters
@@ -30,9 +35,11 @@ def call_magic(magic: str):
     -------
     reponse: str
     """
-    match magic:
+    match magic.lower():
         case "random":
-            return str(magic_random())
+            return str(magic_random(*args))
+        case "randint":
+            return str(magic_randomInt(*args))
         case other:
             return "Magic not defined"
 
@@ -42,3 +49,6 @@ def call_magic(magic: str):
 
 def magic_random():
     return random.random()
+
+def magic_randomInt(stop, start=0, step=1):
+    return random.randrange(start, int(stop), step)
