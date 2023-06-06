@@ -23,7 +23,7 @@ def detect_magic(code: str):
     magic = arguments.pop(0)[1:]
     return magic, arguments
 
-def call_magic(magic: str, args: list[str]):
+def call_magic(kernel, magic: str, args: list[str]):
     """Determine if a magic command is known. If so, return its function.
 
     Parameters
@@ -40,6 +40,8 @@ def call_magic(magic: str, args: list[str]):
             return str(magic_random(*args))
         case "randint":
             return str(magic_randomInt(*args))
+        case "install":
+            return str(magic_install(kernel, *args))
         case other:
             return "Magic not defined"
 
@@ -52,3 +54,13 @@ def magic_random():
 
 def magic_randomInt(stop, start=0, step=1):
     return random.randrange(start, int(stop), step)
+
+def magic_install(kernel, *args):
+    match args[0].lower():
+        case "apt-get":
+            package = str(args[1:]) 
+            code = f"CMD apt-get update && apt-get install -y {package} && rm-rf /var/lib/apt/lists/*"
+        case other:
+            return "Package manager not available (currently available: apt-get)"
+    code = kernel.create_build_stage(code)
+    return "\n".join(kernel.build_image(code))
