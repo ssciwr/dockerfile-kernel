@@ -2679,6 +2679,26 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@jupyterlab/terminal@npm:^4.0.1":
+  version: 4.0.1
+  resolution: "@jupyterlab/terminal@npm:4.0.1"
+  dependencies:
+    "@jupyterlab/apputils": ^4.1.1
+    "@jupyterlab/services": ^7.0.1
+    "@jupyterlab/translation": ^4.0.1
+    "@lumino/coreutils": ^2.1.1
+    "@lumino/domutils": ^2.0.0
+    "@lumino/messaging": ^2.0.0
+    "@lumino/widgets": ^2.1.1
+    xterm: ~5.1.0
+    xterm-addon-canvas: ~0.3.0
+    xterm-addon-fit: ~0.7.0
+    xterm-addon-web-links: ~0.8.0
+    xterm-addon-webgl: ~0.14.0
+  checksum: d9747a56aa603640c4612175fab5c017270cf2121f97fbcd3ab694988499662f94ddf834ce87968eb628e06a1a7ec1eb33c4516875d71d4fcc4d085da172f1e3
+  languageName: node
+  linkType: hard
+
 "@jupyterlab/testing@npm:^4.0.1":
   version: 4.0.1
   resolution: "@jupyterlab/testing@npm:4.0.1"
@@ -9575,6 +9595,7 @@ __metadata:
   dependencies:
     "@jupyterlab/application": ^4.0.0
     "@jupyterlab/builder": ^4.0.0
+    "@jupyterlab/terminal": ^4.0.1
     "@jupyterlab/testutils": ^4.0.0
     "@types/jest": ^29.2.0
     "@types/json-schema": ^7.0.11
@@ -11209,8 +11230,8 @@ __metadata:
   linkType: hard
 
 "webpack@npm:^5.76.1":
-  version: 5.85.0
-  resolution: "webpack@npm:5.85.0"
+  version: 5.85.1
+  resolution: "webpack@npm:5.85.1"
   dependencies:
     "@types/eslint-scope": ^3.7.3
     "@types/estree": ^1.0.0
@@ -11241,7 +11262,7 @@ __metadata:
       optional: true
   bin:
     webpack: bin/webpack.js
-  checksum: b013be9fbc7f6810d1f229f570c70710ddbc7290f817411acffe4214b2b6c783a041ab1f2005d9e1109f4ab21c136f0f8d8c067a5fb64f20a82dcbc1ee0d3f42
+  checksum: 6fa659ef5e53211e6eeaed1987ac415ddd219584414b2d5ca0d528f0c7dd49be5363a9840e1def33efe1b3305ef3ad3c91f803bd87e41d2771b125340caa4df7
   languageName: node
   linkType: hard
 
@@ -11451,6 +11472,49 @@ __metadata:
   version: 4.0.2
   resolution: "xtend@npm:4.0.2"
   checksum: ac5dfa738b21f6e7f0dd6e65e1b3155036d68104e67e5d5d1bde74892e327d7e5636a076f625599dc394330a731861e87343ff184b0047fef1360a7ec0a5a36a
+  languageName: node
+  linkType: hard
+
+"xterm-addon-canvas@npm:~0.3.0":
+  version: 0.3.0
+  resolution: "xterm-addon-canvas@npm:0.3.0"
+  peerDependencies:
+    xterm: ^5.0.0
+  checksum: 21eabd28a2718e775399f27e21922ec4e22528576ae88278ef39c68239119e4576eecd59cf0f1c76dfcbea0f82b779f8dbaf4ce38e04e648844c33ac7632d333
+  languageName: node
+  linkType: hard
+
+"xterm-addon-fit@npm:~0.7.0":
+  version: 0.7.0
+  resolution: "xterm-addon-fit@npm:0.7.0"
+  peerDependencies:
+    xterm: ^5.0.0
+  checksum: 512d41f80d6f9427ba02dab4e6fd642e94775a9cf7ef72ae4b55eab2a36856b5c67069bfc66b4af412fdce29a0842f9c6382af3672f0b514c4352dfd47defe8f
+  languageName: node
+  linkType: hard
+
+"xterm-addon-web-links@npm:~0.8.0":
+  version: 0.8.0
+  resolution: "xterm-addon-web-links@npm:0.8.0"
+  peerDependencies:
+    xterm: ^5.0.0
+  checksum: fe07572adfaa84ceeb961db3ae577aeb2342ea5dcd4948170d1b733ae8045693fab8808f9c63cc43a532b033ae95e63e62ac14bc2e34def764e68f6362ccae2b
+  languageName: node
+  linkType: hard
+
+"xterm-addon-webgl@npm:~0.14.0":
+  version: 0.14.0
+  resolution: "xterm-addon-webgl@npm:0.14.0"
+  peerDependencies:
+    xterm: ^5.0.0
+  checksum: 05f144c920660ad8122aa13564612b1ce71b92ba8f74b3387db3e39b616437659da36b7edf3aefe5900c59956cd6ca1272a0892248df751c8899a202befe019c
+  languageName: node
+  linkType: hard
+
+"xterm@npm:~5.1.0":
+  version: 5.1.0
+  resolution: "xterm@npm:5.1.0"
+  checksum: cbacbc9dc1bbcf21dabecff46856b43f2d5854b42c1bec4ea03a5720000f2a88d79b0da45b6c38213d6607474a1fbe66d5ff25fa120b7e9e60eeed964dd840a1
   languageName: node
   linkType: hard
 
