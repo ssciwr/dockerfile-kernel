@@ -38,9 +38,11 @@ def call_magic(magic: str, args: list[str]):
     """Determine if a magic command is known. If so, return its function.
 
     Parameters
-    ---------_
+    ----------
     magic: str
         Magic command
+    args: list[str]
+        Magic arguments
 
     Returns
     -------
