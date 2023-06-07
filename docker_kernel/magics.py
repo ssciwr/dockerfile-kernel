@@ -21,6 +21,17 @@ def detect_magic(code: str):
     arguments = code.split(" ")
     # get actual magic command, leaving only the arguments
     magic = arguments.pop(0)[1:]
+
+
+    for index, argument in enumerate(arguments):
+        if ":" in argument:
+            sub_args = argument.split(":")
+            arguments.pop(index)
+            # i = 0
+            for idx, sub_arg in enumerate(sub_args):
+                arguments.insert(index+idx, sub_arg)
+                # i = i + 1
+
     return magic, arguments
 
 def call_magic(magic: str, args: list[str]):
@@ -40,6 +51,9 @@ def call_magic(magic: str, args: list[str]):
             return str(magic_random(*args))
         case "randint":
             return str(magic_randomInt(*args))
+        case "tag":
+            # return the image name and tag name
+            return str(magic_tag(args))
         case other:
             return "Magic not defined"
 
@@ -52,3 +66,7 @@ def magic_random():
 
 def magic_randomInt(stop, start=0, step=1):
     return random.randrange(start, int(stop), step)
+
+def magic_tag(args):
+    # get the image name and tag name
+    return args[0:2]
