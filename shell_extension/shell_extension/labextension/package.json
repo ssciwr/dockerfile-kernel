@@ -99,7 +99,7 @@
     "extension": true,
     "outputDir": "shell_extension/labextension",
     "_build": {
-      "load": "static/remoteEntry.334f14cb0c9d47353bd6.js",
+      "load": "static/remoteEntry.458ec70da410b0f5c537.js",
       "extension": "./extension",
       "style": "./style"
     }
