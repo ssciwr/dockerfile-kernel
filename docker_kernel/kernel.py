@@ -24,9 +24,6 @@ class DockerKernel(Kernel):
         super().__init__(**kwargs)
         self._api = docker.APIClient(base_url='unix://var/run/docker.sock')
         self._sha1 = None
-        self._in_shell = False
-        self._container = None
-        self._workdir = "/"
 
     @property
     def kernel_info(self):
@@ -34,10 +31,7 @@ class DockerKernel(Kernel):
         info["imageId"] = self._sha1
         return info
 
-    def do_execute(self, code, silent, store_history=True, user_expressions=None, allow_stdin=False): 
-        if self._in_shell:
-            self._execute_command(code)
-            return {'status': 'ok', 'execution_count': self.execution_count, 'payload': [], 'user_expression': {}}
+    def do_execute(self, code, silent, store_history=True, user_expressions=None, allow_stdin=False):
 
         if self._sha1 is not None:
             code = f"FROM {self._sha1}\n{code}"
