@@ -21,12 +21,33 @@ class DockerKernel(Kernel):
     banner = "Dockerfile Kernel"
 
     def __init__(self, *args, **kwargs):
+        """Initialize the kernel."""
         super().__init__(**kwargs)
         self._api = docker.APIClient(base_url='unix://var/run/docker.sock')
         self._sha1 = None
         self._tags = {}
 
     def do_execute(self, code, silent, store_history=True, user_expressions=None, allow_stdin=False):
+        """ Execute user code.
+        
+        Parameters
+        ----------
+        code: str
+            The code to be executed.
+        silent: bool
+            Whether to display output.
+        store_history: bool
+            Whether to record this code in history and increase the execution count. If silent is True, this is implicitly False.
+        user_expressions: dict
+            Mapping of names to expressions to evaluate after the code has run. You can ignore this if you need to.
+        allow_stdin: bool
+            Whether the frontend can provide input on request (e.g. for Python's `raw_input()`).
+
+        Returns
+        -------
+        dict
+            Specified [here](https://jupyter-client.readthedocs.io/en/stable/messaging.html#execution-results)
+        """
         magic, arguments = detect_magic(code)
         if magic is not None:
             try:

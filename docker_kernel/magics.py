@@ -10,7 +10,10 @@ def detect_magic(code: str):
 
     Returns
     -------
-    tuple(magic: str | None, arguments: tuple[str] | None)
+    tuple(str | None, tuple[str] | None)
+        Name of the magic and passed arguments.
+
+        Null for both if magic not known.
     """
     code = code.strip()
     magic_present = code.startswith("%")
@@ -48,7 +51,6 @@ def call_magic(kernel, magic: str, *args: str):
             int = magic_randomInt(*args)
             response = str(int)
         case "tag":
-            # return the image name and tag name
             response = magic_tag(kernel, *args)
         case other:
             response = "Magic not defined"
@@ -60,15 +62,55 @@ def call_magic(kernel, magic: str, *args: str):
 # Defined Magics
 
 def magic_random():
+    """Generate random float between 0 and 1
+
+    Returns
+    -------
+    random: int
+    """
     return random.random()
 
-def magic_randomInt(stop, start=0, step=1):
+def magic_randomInt(stop: int, start=0, step=1):
+    """Generate random integer between two given integers
+
+    Parameters
+    ----------
+    stop: int
+        Max value (not included)
+    start: int, optional
+        Min value (included)
+    step: int, optional
+        Incrementation
+    
+    Returns
+    -------
+    int
+        Generated integer
+    """
     return random.randrange(start, int(stop), step)
 
 def magic_tag(kernel, target):
+    """Save a docker image via a name and tag in the kernel for later access.
+
+    Parameters
+    ----------
+    kernel: DockerKernel
+        Kernel instance
+    target: str
+        Name and tag thats being assigned to the image.
+        
+        If no tag is passed, a default is used.
+
+        Format: "name:tag"
+    
+    Returns
+    -------
+    str
+        Message to be printed in the notebook
+    """
     DEFAULT_TAG = "latest"
     tags = kernel._tags
-    image_id = kernel._sha1
+    image_id = kernel._sha
 
     if image_id is None:
         return "Error storing image: No image found"
