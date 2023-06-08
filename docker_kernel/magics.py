@@ -43,15 +43,17 @@ def call_magic(kernel, magic: str, *args: str):
     match magic.lower():
         case "random":
             float = magic_random()
-            return [str(float)]
+            response = str(float)
         case "randint":
             int = magic_randomInt(*args)
-            return [str(int)]
+            response = str(int)
         case "tag":
             # return the image name and tag name
-            return magic_tag(kernel, *args)
+            response = magic_tag(kernel, *args)
         case other:
-            return ["Magic not defined"]
+            response = "Magic not defined"
+        
+    return [response] if type(response) is str else response
 
 
 ##############################
@@ -69,7 +71,7 @@ def magic_tag(kernel, target):
     image_id = kernel._sha1
 
     if image_id is None:
-        return ["Error storing image: No image found"]
+        return "Error storing image: No image found"
 
     try:
         name, tag = target.split(":")
@@ -79,11 +81,14 @@ def magic_tag(kernel, target):
             name = target
             tag = DEFAULT_TAG
         else:
-            return [f"Error parsing arguments:", f"\t\"{target}\" is not valid: invalid reference format"]
+            return [f"Error parsing arguments:",
+                    f"\t\"{target}\" is not valid: invalid reference format"]
 
     if name not in tags:
         tags[name] = {}
 
     save_type = "stored" if tags[name].get(tag, None) is None else "overwritten"
     tags[name][tag] = image_id
-    return [f"The image with id {image_id} was {save_type}:", f"name: {name}", f"tag: {tag}"]
+    return [f"The image with id {image_id} was {save_type}:", 
+            f"name: {name}",
+            f"tag: {tag}"]

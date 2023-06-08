@@ -29,7 +29,10 @@ class DockerKernel(Kernel):
     def do_execute(self, code, silent, store_history=True, user_expressions=None, allow_stdin=False):
         magic, arguments = detect_magic(code)
         if magic is not None:
-            response = call_magic(self, magic, *arguments)
+            try:
+                response = call_magic(self, magic, *arguments)
+            except TypeError as e:
+                response = e.args
             self.send_response(self.iopub_socket, 'stream', {"name": "stdout", "text": "\n".join(response)})
             return {'status': 'ok', 'execution_count': self.execution_count, 'payload': [], 'user_expression': {}}
 
