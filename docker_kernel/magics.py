@@ -1,3 +1,8 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from kernel import DockerKernel
+
 import random
 
 def detect_magic(code: str):
@@ -27,7 +32,7 @@ def detect_magic(code: str):
 
     return magic, tuple(arguments)
 
-def call_magic(kernel, magic: str, *args: str):
+def call_magic(kernel: DockerKernel, magic: str, *args: str):
     """Determine if a magic command is known. If so, execute it and return its response.
 
     Parameters
@@ -89,7 +94,7 @@ def magic_randomInt(stop: int, start=0, step=1):
     """
     return random.randrange(start, int(stop), step)
 
-def magic_tag(kernel, target: str):
+def magic_tag(kernel: DockerKernel, target: str):
     """Save a docker image via a name and tag in the kernel for later access.
 
     Parameters

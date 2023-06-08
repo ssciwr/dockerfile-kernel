@@ -24,11 +24,10 @@ class DockerKernel(Kernel):
         """Initialize the kernel."""
         super().__init__(**kwargs)
         self._api = docker.APIClient(base_url='unix://var/run/docker.sock')
-        self._sha1 = None
-        self._tags = {}
-        self.DEFAULT_TAG = "latest"
+        self._sha1: str | None = None
+        self._tags: dict[str, dict[str, str]] = {}
 
-    def do_execute(self, code, silent, store_history=True, user_expressions=None, allow_stdin=False):
+    def do_execute(self, code: str, silent: bool, store_history=True, user_expressions={}, allow_stdin=False):
         """ Execute user code.
         
         Parameters
