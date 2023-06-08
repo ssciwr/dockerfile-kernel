@@ -10,13 +10,13 @@ def detect_magic(code: str):
 
     Returns
     -------
-    magic: str | None
-    arguments: list[str]
+    tuple(magic: str | None, arguments: tuple[str] | None)
     """
-    code = code.lstrip()
+    code = code.strip()
     magic_present = code.startswith("%")
+    
     if not magic_present:
-        return None, []
+        return None, None
     
     arguments = code.split(" ")
     # get actual magic command, leaving only the arguments
@@ -32,7 +32,7 @@ def detect_magic(code: str):
                 arguments.insert(index+idx, sub_arg)
                 # i = i + 1
 
-    return magic, arguments
+    return magic, tuple(arguments)
 
 def call_magic(magic: str, args: list[str]):
     """Determine if a magic command is known. If so, return its function.
