@@ -89,7 +89,7 @@ def magic_randomInt(stop: int, start=0, step=1):
     """
     return random.randrange(start, int(stop), step)
 
-def magic_tag(kernel, target):
+def magic_tag(kernel, target: str):
     """Save a docker image via a name and tag in the kernel for later access.
 
     Parameters
@@ -97,7 +97,7 @@ def magic_tag(kernel, target):
     kernel: DockerKernel
         Kernel instance
     target: str
-        Name and tag thats being assigned to the image.
+        Name and tag that are being assigned to the image.
         
         If no tag is passed, a default is used.
 
@@ -108,29 +108,20 @@ def magic_tag(kernel, target):
     str
         Message to be printed in the notebook
     """
-    DEFAULT_TAG = "latest"
-    tags = kernel._tags
-    image_id = kernel._sha
-
-    if image_id is None:
-        return "Error storing image: No image found"
-
     try:
         name, tag = target.split(":")
     except ValueError as e:
         # If no colon is provided the default tag is used
         if ":" not in target:
             name = target
-            tag = DEFAULT_TAG
+            tag = None
         else:
             return [f"Error parsing arguments:",
                     f"\t\"{target}\" is not valid: invalid reference format"]
 
-    if name not in tags:
-        tags[name] = {}
+    if tag is None:
+        kernel.tag_image(name)
+    else:
+        kernel.tag_image(name, tag)
 
-    save_type = "stored" if tags[name].get(tag, None) is None else "overwritten"
-    tags[name][tag] = image_id
-    return [f"The image with id {image_id} was {save_type}:", 
-            f"name: {name}",
-            f"tag: {tag}"]
+    return []

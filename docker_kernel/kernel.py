@@ -26,6 +26,7 @@ class DockerKernel(Kernel):
         self._api = docker.APIClient(base_url='unix://var/run/docker.sock')
         self._sha1 = None
         self._tags = {}
+        self.DEFAULT_TAG = "latest"
 
     def do_execute(self, code, silent, store_history=True, user_expressions=None, allow_stdin=False):
         """ Execute user code.
@@ -73,3 +74,34 @@ class DockerKernel(Kernel):
                     self.send_response(self.iopub_socket, 'stream', {"name": "stdout", "text": log})
 
         return {'status': 'ok', 'execution_count': self.execution_count, 'payload': [], 'user_expression': {}}
+
+    def tag_image(self, name: str, tag="latest", image_id: str|None=None):
+        """ Tag an image.
+
+        Parameters
+        ----------
+        name: str
+            Image name to be assigned.
+        tag: str, optional
+            Typically a specific version or variant of an image.
+        image_id: str | None, optional
+            Id of image to be saved.
+            If not specified, current image id is used.
+        
+        Return
+        ------
+        None
+        """
+        if self._sha1 is None and image_id is None:
+            self.send_response(self.iopub_socket, 'stream', {"name": "stdout", "text": "Error storing image: No image found"})
+            return
+        
+        if name not in self._tags:
+            self._tags[name] = {}
+
+        image_id = self._sha1 if image_id is None else image_id
+        self._tags[name][tag] = image_id
+
+        image_str = image_id.removeprefix("sha256:")
+        image_str = f"{image_str[:10]}..." if len(image_str) >= 10 else image_str
+        self.send_response(self.iopub_socket, 'stream', {"name": "stdout", "text": f"Image {image_str} tagged as \"{name}:{tag}\""})
