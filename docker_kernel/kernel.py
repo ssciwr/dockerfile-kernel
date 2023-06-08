@@ -29,14 +29,14 @@ class DockerKernel(Kernel):
     def do_execute(self, code, silent, store_history=True, user_expressions=None, allow_stdin=False):
         magic, arguments = detect_magic(code)
         if magic != None:
-            response = call_magic(magic, arguments)
+            response = call_magic(magic, *arguments)
             if self._sha1 is not None:
                 self._tag[response[0]] = self._sha1
                 self._tag[response[1]] = self._sha1
-                response = self._sha1 + ":" + response
+                response = [self._sha1 + ":" + response]
             else:
-                response = "no image"
-            self.send_response(self.iopub_socket, 'stream', {"name": "stdout", "text": response})
+                response = ["no image"]
+            self.send_response(self.iopub_socket, 'stream', {"name": "stdout", "text": "\n".join(response)})
             return {'status': 'ok', 'execution_count': self.execution_count, 'payload': [], 'user_expression': {}}
 
         if self._sha1 is not None:

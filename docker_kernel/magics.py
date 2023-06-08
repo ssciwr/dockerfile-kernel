@@ -34,30 +34,32 @@ def detect_magic(code: str):
 
     return magic, tuple(arguments)
 
-def call_magic(magic: str, args: list[str]):
-    """Determine if a magic command is known. If so, return its function.
+def call_magic(magic: str, *args: str):
+    """Determine if a magic command is known. If so, execute it and return its response.
 
     Parameters
     ----------
     magic: str
         Magic command
-    args: list[str]
+    args: tuple[str]
         Magic arguments
 
     Returns
     -------
-    reponse: str
+    reponse: list[str]
     """
     match magic.lower():
         case "random":
-            return str(magic_random(*args))
+            float = magic_random()
+            return [str(float)]
         case "randint":
-            return str(magic_randomInt(*args))
+            int = magic_randomInt(*args)
+            return [str(int)]
         case "tag":
             # return the image name and tag name
             return str(magic_tag(args))
         case other:
-            return "Magic not defined"
+            return ["Magic not defined"]
 
 
 ##############################
