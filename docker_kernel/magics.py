@@ -115,10 +115,11 @@ DEFINED_MAGICS.sort()
 def magic_install(kernel, *args):
     match args[0].lower():
         case "apt-get":
-            package = str(args[1:]) 
-            code = f"CMD apt-get update && apt-get install -y {package} && rm-rf /var/lib/apt/lists/*"
+            package = str(args[1:]).strip("(),'") 
+            code = f"RUN apt-get update && apt-get install -y {package} && rm -rf /var/lib/apt/lists/*"
         case other:
             return "Package manager not available (currently available: apt-get)"
+    kernel.set_payload("set_next_input", code)
     code = kernel.create_build_stage(code)
     return kernel.build_image(code)
 
