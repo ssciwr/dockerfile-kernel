@@ -69,8 +69,8 @@ def call_magic(kernel: DockerKernel, magic: str, *args: str, **flags: str):
     reponse: list[str]
     """
     match magic.lower():
-        case "list":
-            response = magic_list()
+        case "magic":
+            response = magic_magic()
         case "random":
             float = magic_random()
             response = str(float)
@@ -111,14 +111,14 @@ def categorize_flags(**all_flags: str):
 DEFINED_MAGICS = ["list", "random", "randomInt", "tag"]
 DEFINED_MAGICS.sort()
 
-def magic_list():
+def magic_magic():
     """ List all available magic commands.
     Returns
     -------
     list[str]
         Available magics.
     """
-    return DEFINED_MAGICS
+    return [f"%{magic}" for magic in DEFINED_MAGICS]
 
 def magic_random():
     """Generate random float between 0 and 1
