@@ -48,10 +48,11 @@ class DockerKernel(Kernel):
         dict
             Specified [here](https://jupyter-client.readthedocs.io/en/stable/messaging.html#execution-results)
         """
-        magic, arguments = detect_magic(code)
+        magic, args, flags = detect_magic(code)
+
         if magic is not None:
             try:
-                response = call_magic(self, magic, *arguments)
+                response = call_magic(self, magic, *args, **flags)
             except TypeError as e:
                 response = e.args
             self.send_response(self.iopub_socket, 'stream', {"name": "stdout", "text": "\n".join(response)})

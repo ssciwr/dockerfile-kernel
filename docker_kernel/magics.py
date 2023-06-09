@@ -4,6 +4,9 @@ if TYPE_CHECKING:
     from kernel import DockerKernel
 
 import random
+import re
+import itertools
+from itertools import zip_longest
 
 def detect_magic(code: str):
     """Parse magics from the cell code.
@@ -15,24 +18,39 @@ def detect_magic(code: str):
 
     Returns
     -------
-    tuple(str | None, tuple[str] | None)
-        Name of the magic and passed arguments.
+    tuple(str | None, tuple[str] | None, dict[str, str] | None)
+        Name of the magic, args and flags.
+        In kwargs: Normal flags start with a hyphen, shorthand flags omit it.
 
-        Null for both if magic not known.
+        Null for all if magic not known.
     """
-    code = code.strip()
+    # Remove multi-/ trailing / leading spaces
+    code = re.sub(' +', ' ', code).strip()
     magic_present = code.startswith("%")
     
     if not magic_present:
-        return None, None
+        return None, None, None
     
     arguments = code.split(" ")
-    # get actual magic command, leaving only the arguments
+    # Get actual magic command, leaving only the arguments
     magic = arguments.pop(0)[1:]
 
-    return magic, tuple(arguments)
+    # Separate args and flags
+    args = ()
+    flags = {}
+    c, n = itertools.tee(arguments)
+    next(n, None) # two iterators with one ahead of the other
+    it = iter(zip_longest(c, n))
+    for arg, narg in it:
+        if arg.startswith("-") and len(arg) >= 2:
+            flags[arg[1:]] = narg
+            next(it, None)
+        else:
+            args = args + (arg,)
 
-def call_magic(kernel: DockerKernel, magic: str, *args: str):
+    return magic, args, flags
+
+def call_magic(kernel: DockerKernel, magic: str, *args: str, **flags: str):
     """Determine if a magic command is known. If so, execute it and return its response.
 
     Parameters
@@ -43,6 +61,8 @@ def call_magic(kernel: DockerKernel, magic: str, *args: str):
         Magic command
     args: tuple[str]
         Magic arguments
+    flags: dict[str, str]
+        Magic flags
 
     Returns
     -------
@@ -58,11 +78,31 @@ def call_magic(kernel: DockerKernel, magic: str, *args: str):
             int = magic_randomInt(*args)
             response = str(int)
         case "tag":
-            response = magic_tag(kernel, *args)
+            response = magic_tag(kernel, *args, **flags)
         case other:
             response = "Magic not defined"
         
     return [response] if type(response) is str else response
+
+def categorize_flags(**all_flags: str):
+    """Separates shorthand flags from normal flags
+
+    Parameters
+    ----------
+    flags: dict[str, str]
+
+    Returns
+    -------
+    tuple[shorts: dict[str, str], flags: dict[str, str]]
+    """
+    flags: dict[str, str] = {}
+    shorts: dict[str, str] = {}
+    for flag, option in all_flags.items():
+        if flag.startswith("-"):
+            flags[flag[1:]] = option
+        else:
+            shorts[flag] = option
+    return shorts, flags
 
 
 ##############################
