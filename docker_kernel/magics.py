@@ -34,7 +34,7 @@ def detect_magic(code: str):
     arguments = code.split(" ")
     # Get actual magic command, leaving only the arguments
     magic = arguments.pop(0)[1:]
-
+    
     # Separate args and flags
     args = ()
     flags = {}
@@ -47,7 +47,6 @@ def detect_magic(code: str):
             next(it, None)
         else:
             args = args + (arg,)
-
     return magic, args, flags
 
 def call_magic(kernel: DockerKernel, magic: str, *args: str, **flags: str):
@@ -77,11 +76,13 @@ def call_magic(kernel: DockerKernel, magic: str, *args: str, **flags: str):
         case "randint":
             int = magic_randomInt(*args)
             response = str(int)
+        case "install":
+            response = magic_install(kernel, *args)    
         case "tag":
             response = magic_tag(kernel, *args, **flags)
         case other:
             response = "Magic not defined"
-        
+            
     return [response] if type(response) is str else response
 
 def categorize_flags(**all_flags: str):
@@ -108,8 +109,18 @@ def categorize_flags(**all_flags: str):
 ##############################
 # Defined Magics
 
-DEFINED_MAGICS = ["magic", "random", "randomInt", "tag"]
+DEFINED_MAGICS = ["install", "magic", "random", "randomInt", "tag"]
 DEFINED_MAGICS.sort()
+
+def magic_install(kernel, *args):
+    match args[0].lower():
+        case "apt-get":
+            package = str(args[1:]) 
+            code = f"CMD apt-get update && apt-get install -y {package} && rm-rf /var/lib/apt/lists/*"
+        case other:
+            return "Package manager not available (currently available: apt-get)"
+    code = kernel.create_build_stage(code)
+    return kernel.build_image(code)
 
 def magic_magic():
     """ List all available magic commands.

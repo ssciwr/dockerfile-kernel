@@ -30,7 +30,7 @@ class DockerKernel(Kernel):
     @property
     def default_tag(self):
         return "latest"
-
+      
     def do_execute(self, code: str, silent: bool, store_history=True, user_expressions={}, allow_stdin=False):
         """ Execute user code.
         
@@ -61,11 +61,21 @@ class DockerKernel(Kernel):
                 response = e.args
             self.send_response(self.iopub_socket, 'stream', {"name": "stdout", "text": "\n".join(response)})
             return {'status': 'ok', 'execution_count': self.execution_count, 'payload': [], 'user_expression': {}}
+        code = self.create_build_stage(code)
+        logs = self.build_image(code)
+        for log in logs:
+            self.send_response(self.iopub_socket, 'stream', {"name": "stdout", "text": log})
 
+        return {'status': 'ok', 'execution_count': self.execution_count, 'payload': [], 'user_expression': {}}
+
+    def create_build_stage(self, code):
         if self._sha1 is not None:
             code = f"FROM {self._sha1}\n{code}"
-            
-        f = io.BytesIO(code.encode('utf-8'))   
+        return code
+
+    def build_image(self, code): 
+        f = io.BytesIO(code.encode('utf-8'))
+        logs = [] 
         for logline in self._api.build(fileobj=f, rm=True):
             loginfo = json.loads(logline.decode())
 
@@ -75,9 +85,9 @@ class DockerKernel(Kernel):
             if 'stream' in loginfo:
                 log = loginfo['stream']
                 if log.strip() != "":
-                    self.send_response(self.iopub_socket, 'stream', {"name": "stdout", "text": log})
-
-        return {'status': 'ok', 'execution_count': self.execution_count, 'payload': [], 'user_expression': {}}
+                    logs.append(log)
+        
+        return logs
 
     def tag_image(self, name: str, tag: str|None=None, image_id: str|None=None):
         """ Tag an image.
