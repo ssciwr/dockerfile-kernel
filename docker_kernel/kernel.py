@@ -26,6 +26,10 @@ class DockerKernel(Kernel):
         self._api = docker.APIClient(base_url='unix://var/run/docker.sock')
         self._sha1: str | None = None
         self._tags: dict[str, dict[str, str]] = {}
+    
+    @property
+    def default_tag(self):
+        return "latest"
 
     def do_execute(self, code: str, silent: bool, store_history=True, user_expressions={}, allow_stdin=False):
         """ Execute user code.
@@ -75,7 +79,7 @@ class DockerKernel(Kernel):
 
         return {'status': 'ok', 'execution_count': self.execution_count, 'payload': [], 'user_expression': {}}
 
-    def tag_image(self, name: str, tag="latest", image_id: str|None=None):
+    def tag_image(self, name: str, tag: str|None=None, image_id: str|None=None):
         """ Tag an image.
 
         Parameters
@@ -96,10 +100,12 @@ class DockerKernel(Kernel):
             self.send_response(self.iopub_socket, 'stream', {"name": "stdout", "text": "Error storing image: No image found"})
             return
         
+        tag = self.default_tag if tag is None else tag
+        image_id = self._sha1 if image_id is None else image_id
+        
         if name not in self._tags:
             self._tags[name] = {}
 
-        image_id = self._sha1 if image_id is None else image_id
         self._tags[name][tag] = image_id
 
         image_str = image_id.removeprefix("sha256:")

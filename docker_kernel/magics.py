@@ -148,7 +148,7 @@ def magic_randomInt(stop: int, start=0, step=1):
     """
     return random.randrange(start, int(stop), step)
 
-def magic_tag(kernel: DockerKernel, target: str):
+def magic_tag(kernel: DockerKernel, target: str, **flags: str):
     """Save a docker image via a name and tag in the kernel for later access.
 
     Parameters
@@ -161,12 +161,27 @@ def magic_tag(kernel: DockerKernel, target: str):
         If no tag is passed, a default is used.
 
         Format: "name:tag"
+    image: str | None, optional
+        Specific image id. 
     
     Returns
     -------
     str
         Message to be printed in the notebook
     """
+    ALLOWED_FLAGS = ["image"]
+    ALLOWED_SHORTS = ["i"]
+
+    shorts, flags = categorize_flags(**flags)
+
+    # Find invalid flags
+    for flag in flags.keys():
+        if flag not in ALLOWED_FLAGS:
+            return [f"Unknown flag: --{flag}"]
+    for short in shorts.keys():
+        if short not in ALLOWED_SHORTS:
+            return [f"Unknown shorthand flag: -{short}"]
+
     try:
         name, tag = target.split(":")
     except ValueError as e:
@@ -177,10 +192,9 @@ def magic_tag(kernel: DockerKernel, target: str):
         else:
             return [f"Error parsing arguments:",
                     f"\t\"{target}\" is not valid: invalid reference format"]
+        
+    image_id = shorts.get("i", flags.get("image"))
 
-    if tag is None:
-        kernel.tag_image(name)
-    else:
-        kernel.tag_image(name, tag)
+    kernel.tag_image(name, tag=tag, image_id=image_id)
 
     return []
