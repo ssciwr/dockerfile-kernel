@@ -108,7 +108,7 @@ def categorize_flags(**all_flags: str):
 ##############################
 # Defined Magics
 
-DEFINED_MAGICS = ["list", "random", "randomInt", "tag"]
+DEFINED_MAGICS = ["magic", "random", "randomInt", "tag"]
 DEFINED_MAGICS.sort()
 
 def magic_magic():
