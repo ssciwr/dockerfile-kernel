@@ -62,21 +62,15 @@ class DockerKernel(Kernel):
             except TypeError as e:
                 response = e.args
             self.send_response(self.iopub_socket, 'stream', {"name": "stdout", "text": "\n".join(response)})
-            return {'status': 'ok', 'execution_count': self.execution_count, 'payload': [], 'user_expression': {}}
-
-    def do_execute(self, code, silent, store_history=True, user_expressions=None, allow_stdin=False):
-        magic, arguments = detect_magic(code)
-        if magic is not None:
-            response = call_magic(self, magic, arguments)
-            self.send_response(self.iopub_socket, 'stream', {"name": "stdout", "text": response})
             return {'status': 'ok', 'execution_count': self.execution_count, 'payload': self._payload, 'user_expression': {}}
+        
         code = self.create_build_stage(code)
         logs = self.build_image(code)
         for log in logs:
             self.send_response(self.iopub_socket, 'stream', {"name": "stdout", "text": log})
 
-        return {'status': 'ok', 'execution_count': self.execution_count, 'payload': [], 'user_expression': {}}
-
+        return {'status': 'ok', 'execution_count': self.execution_count, 'payload': self._payload, 'user_expression': {}}
+        
     def create_build_stage(self, code):
         if self._sha1 is not None:
             code = f"FROM {self._sha1}\n{code}"
@@ -96,5 +90,15 @@ class DockerKernel(Kernel):
                 if log.strip() != "":
                     logs.append(log)
         return logs
+    
+    def set_payload(self, source: str, text: str, replace):
+        self.payload =[{
+            "source": source,
+            # the text contents of the cell to create
+            "text": text,
+            # If true, replace the current cell in document UIs instead of inserting
+            # a cell. Ignored in console UIs.
+            "replace": replace,
+        }]
                     
 

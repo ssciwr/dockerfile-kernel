@@ -119,7 +119,7 @@ def magic_install(kernel, *args):
             code = f"RUN apt-get update && apt-get install -y {package} && rm -rf /var/lib/apt/lists/*"
         case other:
             return "Package manager not available (currently available: apt-get)"
-    kernel.set_payload("set_next_input", code)
+    kernel.set_payload("set_next_input", code, True)
     code = kernel.create_build_stage(code)
     return kernel.build_image(code)
 
