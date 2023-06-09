@@ -43,7 +43,7 @@ def detect_magic(code: str):
     it = iter(zip_longest(c, n))
     for arg, narg in it:
         if arg.startswith("-") and len(arg) >= 2:
-            flags[arg[1:]] = narg
+            flags[arg] = narg
             next(it, None)
         else:
             args = args + (arg,)
@@ -98,10 +98,10 @@ def categorize_flags(**all_flags: str):
     flags: dict[str, str] = {}
     shorts: dict[str, str] = {}
     for flag, option in all_flags.items():
-        if flag.startswith("-"):
-            flags[flag[1:]] = option
+        if flag.startswith("--"):
+            flags[flag[2:]] = option
         else:
-            shorts[flag] = option
+            shorts[flag[1:]] = option
     return shorts, flags
 
 
