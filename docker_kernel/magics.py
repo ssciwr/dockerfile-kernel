@@ -112,10 +112,25 @@ def categorize_flags(**all_flags: str):
 DEFINED_MAGICS = ["install", "magic", "random", "randomInt", "tag"]
 DEFINED_MAGICS.sort()
 
-def magic_install(kernel, *args):
+def magic_install(kernel: DockerKernel, *args: str, **flags: str):
+    """ Install additional packages to the docker image.
+
+    Parameters
+    ----------
+    kernel: DockerKernel
+        Kernel instance
+    args: tuple[str]
+        install arguments, e.g. package manager, packages
+    flags: dict[str, str]
+        install flags, currently not used
+
+    Returns
+    -------
+    list[str]
+    """
     match args[0].lower():
         case "apt-get":
-            package = str(args[1:]).strip("(),'") 
+            package = " ".join(args[1:])
             code = f"RUN apt-get update && apt-get install -y {package} && rm -rf /var/lib/apt/lists/*"
         case other:
             return "Package manager not available (currently available: apt-get)"
@@ -125,6 +140,7 @@ def magic_install(kernel, *args):
 
 def magic_magic():
     """ List all available magic commands.
+
     Returns
     -------
     list[str]
@@ -133,7 +149,7 @@ def magic_magic():
     return [f"%{magic}" for magic in DEFINED_MAGICS]
 
 def magic_random():
-    """Generate random float between 0 and 1
+    """ Generate random float between 0 and 1
 
     Returns
     -------

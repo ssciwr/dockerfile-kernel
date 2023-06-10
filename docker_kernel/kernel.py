@@ -55,6 +55,7 @@ class DockerKernel(Kernel):
             Specified [here](https://jupyter-client.readthedocs.io/en/stable/messaging.html#execution-results)
         """
         magic, args, flags = detect_magic(code)
+        self._payload = []
 
         if magic is not None:
             try:
@@ -72,11 +73,13 @@ class DockerKernel(Kernel):
         return {'status': 'ok', 'execution_count': self.execution_count, 'payload': self._payload, 'user_expression': {}}
         
     def create_build_stage(self, code):
+        """ Add current *_sha1* to the code."""
         if self._sha1 is not None:
             code = f"FROM {self._sha1}\n{code}"
         return code
 
-    def build_image(self, code): 
+    def build_image(self, code):
+        """ Build docker image by passing input to the docker API."""
         f = io.BytesIO(code.encode('utf-8'))
         logs = [] 
         for logline in self._api.build(fileobj=f, rm=True):
@@ -91,13 +94,25 @@ class DockerKernel(Kernel):
                     logs.append(log)
         return logs
     
-    def set_payload(self, source: str, text: str, replace):
-        self.payload =[{
+    def set_payload(self, source: str, text: str, replace: bool):
+        """ Trigger frontend action via payloads. 
+        
+        Parameters
+        ----------
+        source: str
+            action type, e.g. *'set_next_input'* to create a new cell
+        text: str
+            text contents of the cell to create
+        replace: bool
+            If true, replace the current cell in document UIs instead of inserting a cell. Ignored in console UIs.
+        
+        Returns
+        -------
+        NONE
+        """
+        self._payload =[{
             "source": source,
-            # the text contents of the cell to create
             "text": text,
-            # If true, replace the current cell in document UIs instead of inserting
-            # a cell. Ignored in console UIs.
             "replace": replace,
         }]
                     
