@@ -101,4 +101,34 @@ class DockerKernel(Kernel):
             "replace": replace,
         }]
                     
+    def tag_image(self, name: str, tag: str|None=None, image_id: str|None=None):
+        """ Tag an image.
+        Parameters
+        ----------
+        name: str
+            Image name to be assigned.
+        tag: str, optional
+            Typically a specific version or variant of an image.
+        image_id: str | None, optional
+            Id of image to be saved.
+            If not specified, current image id is used.
+        
+        Return
+        ------
+        None
+        """
+        if self._sha1 is None and image_id is None:
+            self.send_response(self.iopub_socket, 'stream', {"name": "stdout", "text": "Error storing image: No image found"})
+            return
 
+        tag = self.default_tag if tag is None else tag
+        image_id = self._sha1 if image_id is None else image_id
+
+        if name not in self._tags:
+            self._tags[name] = {}
+
+        self._tags[name][tag] = image_id
+
+        image_str = image_id.removeprefix("sha256:")
+        image_str = f"{image_str[:10]}..." if len(image_str) >= 10 else image_str
+        self.send_response(self.iopub_socket, 'stream', {"name": "stdout", "text": f"Image {image_str} tagged as \"{name}:{tag}\""})
