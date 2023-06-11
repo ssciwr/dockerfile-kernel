@@ -37,7 +37,7 @@ class Magic(ABC):
     def REQUIRED_ARGS(self) -> tuple[list[str], int]:
         """Defines how many arguments are expected and which are required.
 
-        The returned index is the first thats optional.
+        The returned index is the first that is optional.
 
         Example
         -------
@@ -74,7 +74,7 @@ class Magic(ABC):
     @property
     @abstractmethod
     def VALID_FLAGS(self) -> list[str]:
-        """Flags don't won't throw an error
+        """Flags that won't throw an error
 
         Example
         -------
@@ -85,7 +85,7 @@ class Magic(ABC):
     @property
     @abstractmethod
     def VALID_SHORTS(self) -> list[str]:
-        """Short flags don't won't throw an error
+        """Short flags that won't throw an error
 
         Example
         -------
