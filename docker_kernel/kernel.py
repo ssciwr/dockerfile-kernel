@@ -1,7 +1,7 @@
 import docker
 import io
 import json
-from .magics import detect_magic, call_magic
+from docker_kernel.magic import Magic
 
 from ipykernel.kernelbase import Kernel
 
@@ -54,17 +54,21 @@ class DockerKernel(Kernel):
         dict
             Specified [here](https://jupyter-client.readthedocs.io/en/stable/messaging.html#execution-results)
         """
-        magic, args, flags = detect_magic(code)
+        MagicClass, args, flags = Magic.detect_magic(code)
         self._payload = []
 
-        if magic is not None:
+        ####################
+        # Magic execution
+        if MagicClass is not None:
             try:
-                response = call_magic(self, magic, *args, **flags)
+                response = MagicClass(self, *args, **flags).call_magic()
             except TypeError as e:
                 response = e.args
             self.send_response(self.iopub_socket, 'stream', {"name": "stdout", "text": "\n".join(response)})
             return {'status': 'ok', 'execution_count': self.execution_count, 'payload': self._payload, 'user_expression': {}}
         
+        ####################
+        # Docker execution
         code = self.create_build_stage(code)
         logs = self.build_image(code)
         for log in logs:
@@ -116,34 +120,24 @@ class DockerKernel(Kernel):
             "replace": replace,
         }]
                     
-    def tag_image(self, name: str, tag: str|None=None, image_id: str|None=None):
+    def tag_image(self, image_id: str, name: str, tag: str|None=None):
         """ Tag an image.
         Parameters
         ----------
+        image_id: str
+            Id of image to be saved.
         name: str
             Image name to be assigned.
         tag: str, optional
             Typically a specific version or variant of an image.
-        image_id: str | None, optional
-            Id of image to be saved.
-            If not specified, current image id is used.
         
         Return
         ------
         None
         """
-        if self._sha1 is None and image_id is None:
-            self.send_response(self.iopub_socket, 'stream', {"name": "stdout", "text": "Error storing image: No image found"})
-            return
-
         tag = self.default_tag if tag is None else tag
-        image_id = self._sha1 if image_id is None else image_id
 
         if name not in self._tags:
             self._tags[name] = {}
 
         self._tags[name][tag] = image_id
-
-        image_str = image_id.removeprefix("sha256:")
-        image_str = f"{image_str[:10]}..." if len(image_str) >= 10 else image_str
-        self.send_response(self.iopub_socket, 'stream', {"name": "stdout", "text": f"Image {image_str} tagged as \"{name}:{tag}\""})

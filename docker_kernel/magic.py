@@ -1,17 +1,17 @@
+
 from __future__ import annotations
-from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Callable, Type
 if TYPE_CHECKING:
-    from kernel import DockerKernel
+    from .kernel import DockerKernel
 
-import random
+from abc import ABC, abstractmethod
+
 import re
 import itertools
 from itertools import zip_longest
 
+from .magics.errors import MagicError
 
-class MagicError(Exception):
-    pass
 
 class Magic(ABC):
     """Abstract class as base for a magic command
@@ -265,125 +265,3 @@ class Magic(ABC):
         str | None
         """
         return self._flags.get(long, self._flags.get(short, default))
-
-
-##############################
-# Defined Magics
-
-DEFINED_MAGICS = ["install", "magic", "random", "randomInt", "tag"]
-DEFINED_MAGICS.sort()
-
-def magic_install(kernel: DockerKernel, *args: str, **flags: str):
-    """ Install additional packages to the docker image.
-
-    Parameters
-    ----------
-    kernel: DockerKernel
-        Kernel instance
-    args: tuple[str]
-        install arguments, e.g. package manager, packages
-    flags: dict[str, str]
-        install flags, currently not used
-
-    Returns
-    -------
-    list[str]
-    """
-    match args[0].lower():
-        case "apt-get":
-            package = " ".join(args[1:])
-            code = f"RUN apt-get update && apt-get install -y {package} && rm -rf /var/lib/apt/lists/*"
-        case other:
-            return "Package manager not available (currently available: apt-get)"
-    kernel.set_payload("set_next_input", code, True)
-    code = kernel.create_build_stage(code)
-    return kernel.build_image(code)
-
-def magic_magic():
-    """ List all available magic commands.
-
-    Returns
-    -------
-    list[str]
-        Available magics.
-    """
-    return [f"%{magic}" for magic in DEFINED_MAGICS]
-
-def magic_random():
-    """ Generate random float between 0 and 1
-
-    Returns
-    -------
-    int
-    """
-    return random.random()
-
-def magic_randomInt(stop: int, start=0, step=1):
-    """Generate random integer between two given integers
-
-    Parameters
-    ----------
-    stop: int
-        Max value (not included)
-    start: int, optional
-        Min value (included)
-    step: int, optional
-        Incrementation
-    
-    Returns
-    -------
-    int
-        Generated integer
-    """
-    return random.randrange(start, int(stop), step)
-
-def magic_tag(kernel: DockerKernel, target: str, **flags: str):
-    """Save a docker image via a name and tag in the kernel for later access.
-
-    Parameters
-    ----------
-    kernel: DockerKernel
-        Kernel instance
-    target: str
-        Name and tag that are being assigned to the image.
-        
-        If no tag is passed, a default is used.
-
-        Format: "name:tag"
-    image: str | None, optional
-        Specific image id. 
-    
-    Returns
-    -------
-    str
-        Message to be printed in the notebook
-    """
-    ALLOWED_FLAGS = ["image"]
-    ALLOWED_SHORTS = ["i"]
-
-    shorts, flags = categorize_flags(**flags)
-
-    # Find invalid flags
-    for flag in flags.keys():
-        if flag not in ALLOWED_FLAGS:
-            return [f"Unknown flag: --{flag}"]
-    for short in shorts.keys():
-        if short not in ALLOWED_SHORTS:
-            return [f"Unknown shorthand flag: -{short}"]
-
-    try:
-        name, tag = target.split(":")
-    except ValueError as e:
-        # If no colon is provided the default tag is used
-        if ":" not in target:
-            name = target
-            tag = None
-        else:
-            return [f"Error parsing arguments:",
-                    f"\t\"{target}\" is not valid: invalid reference format"]
-        
-    image_id = shorts.get("i", flags.get("image"))
-
-    kernel.tag_image(name, tag=tag, image_id=image_id)
-
-    return []
