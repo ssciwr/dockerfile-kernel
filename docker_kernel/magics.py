@@ -1,5 +1,6 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING
+from abc import ABC, abstractmethod
+from typing import TYPE_CHECKING, Callable, Type
 if TYPE_CHECKING:
     from kernel import DockerKernel
 
@@ -8,102 +9,262 @@ import re
 import itertools
 from itertools import zip_longest
 
-def detect_magic(code: str):
-    """Parse magics from the cell code.
 
-    Parameters
-    ----------
-    code: str
-        Cell input
+class MagicError(Exception):
+    pass
 
-    Returns
-    -------
-    tuple(str | None, tuple[str] | None, dict[str, str] | None)
-        Name of the magic, args and flags.
-        In kwargs: Normal flags start with a hyphen, shorthand flags omit it.
-
-        Null for all if magic not known.
-    """
-    # Remove multi-/ trailing / leading spaces
-    code = re.sub(' +', ' ', code).strip()
-    magic_present = code.startswith("%")
-    
-    if not magic_present:
-        return None, None, None
-    
-    arguments = code.split(" ")
-    # Get actual magic command, leaving only the arguments
-    magic = arguments.pop(0)[1:]
-    
-    # Separate args and flags
-    args = ()
-    flags = {}
-    c, n = itertools.tee(arguments)
-    next(n, None) # two iterators with one ahead of the other
-    it = iter(zip_longest(c, n))
-    for arg, narg in it:
-        if arg.startswith("-") and len(arg) >= 2:
-            flags[arg] = narg
-            next(it, None)
-        else:
-            args = args + (arg,)
-    return magic, args, flags
-
-def call_magic(kernel: DockerKernel, magic: str, *args: str, **flags: str):
-    """Determine if a magic command is known. If so, execute it and return its response.
+class Magic(ABC):
+    """Abstract class as base for a magic command
 
     Parameters
     ----------
     kernel: DockerKernel
-        Current instance of the docker kernel
-    magic: str
-        Magic command
-    args: tuple[str]
-        Magic arguments
-    flags: dict[str, str]
-        Magic flags
-
-    Returns
-    -------
-    reponse: list[str]
+        Current instance of the Docker kernel
+    *args: tuple[str]
+        Arguments passed with the magic command
+    **flags: dict[str, str]
+        Flags passed with the magic command
     """
-    match magic.lower():
-        case "magic":
-            response = magic_magic()
-        case "random":
-            float = magic_random()
-            response = str(float)
-        case "randint":
-            int = magic_randomInt(*args)
-            response = str(int)
-        case "install":
-            response = magic_install(kernel, *args)    
-        case "tag":
-            response = magic_tag(kernel, *args, **flags)
-        case other:
-            response = "Magic not defined"
+    def __init__(self, kernel: DockerKernel, *args: str, **flags: str):
+        self._kernel = kernel
+        self._args = args
+        self._find_invalid_args()
+        self._shorts, self._flags = Magic._categorize_flags(**flags)
+        self._find_invalid_flags()
+
+    @property
+    @abstractmethod
+    def REQUIRED_ARGS(self) -> tuple[list[str], int]:
+        """Defines how many arguments are expected and which are required.
+
+        The returned index is the first thats optional.
+
+        Example
+        -------
+        (["name", "path", "author"], 1)
+        """
+        pass
+        
+    @property
+    @abstractmethod
+    def ARGS_RULES(self) -> dict[int, list[tuple[Callable[[str], bool], str]]]:
+        """Conditions individual arguments must meet.
+        NOTE: Conditions based on relations between arguments must be handled inside `_execute_magic()`
+        NOTE: Conditions will be checked in order
+
+        The integer key specifies the index of the argument to be checked.
+        Indices not present will be ignored.
+        The tuple consists of
+            - a lambda expression taht returns a bool
+            - a description of the condition for an error message
+
+        Example
+        -------
+        {
+            0: [(lambda arg: arg.startswith("%"),
+                "Argument must start with a '%'" )],
+            2: [(lambda arg: len(re.findall("some regex", arg)) != 0, 
+                "Wrong format"),
+                (lambda arg: len(re.findall("some regex", arg)) != 0, 
+                "Wrong format")]
+        }
+        """
+        pass
+
+    @property
+    @abstractmethod
+    def VALID_FLAGS(self) -> list[str]:
+        """Flags don't won't throw an error
+
+        Example
+        -------
+        ["image", "path"]
+        """
+        pass
+
+    @property
+    @abstractmethod
+    def VALID_SHORTS(self) -> list[str]:
+        """Short flags don't won't throw an error
+
+        Example
+        -------
+        ["i", "p"]
+        """
+        pass
+
+    @staticmethod
+    def detect_magic(code: str):
+        """Parse magics, arguments and flags from the cell code.
+
+        Parameters
+        ----------
+        code: str
+            Cell input
+
+        Returns
+        -------
+        tuple(str | None, tuple[str] | None, dict[str, str] | None)
+            Name of the magic, args and flags.
+            In kwargs: Normal flags start with a hyphen, shorthand flags omit it.
+
+            Null for all if magic not known.
+        """
+        # Remove multi-/ trailing / leading spaces
+        code = re.sub(' +', ' ', code).strip()
+        
+        arguments = code.split(" ")
+        # Get actual magic name, leaving only the arguments
+        magic_name = arguments.pop(0)
+        magic_class = Magic._get_magic(magic_name)
+
+        if magic_class is None:
+            return None, None, None
+        
+        # Separate args and flags
+        args = ()
+        flags = {}
+        c, n = itertools.tee(arguments)
+        next(n, None) # two iterators with one ahead of the other
+        it = iter(zip_longest(c, n))
+        for arg, narg in it:
+            if arg.startswith("-") and len(arg) >= 2:
+                flags[arg] = narg
+                next(it, None)
+            else:
+                args = args + (arg,)
+
+        return magic_class, args, flags
+
+    def call_magic(self) -> list[str]:
+        response = self._execute_magic()
+        return [response] if type(response) is str else response
+
+    @abstractmethod
+    def _execute_magic(self) -> list[str] | str:
+        pass
+
+    @staticmethod
+    def _get_magic(name: str) -> Type[Magic] | None:
+        """ Get Magic specified by name
+
+        Parameters
+        ----------
+        name: str
+            Name of Magic
+
+        Returns
+        -------
+        Magic | None
+        """
+        # Magic commands must start with %
+        if not name.startswith("%"):
+            return None
+        
+        magics: list[Type[Magic]] = Magic.__subclasses__()
+        for magic in magics:
+            if magic.__name__.lower() == name.removeprefix("%").lower():
+                return magic
+        return None
+
+    @staticmethod
+    def _categorize_flags(**all_flags: str) -> tuple[dict[str, str], dict[str, str]]:
+        """Separates shorthand flags from normal flags
+
+        Parameters
+        ----------
+        flags: dict[str, str]
+
+        Returns
+        -------
+        tuple[shorts: dict[str, str], flags: dict[str, str]]
+        """
+        flags: dict[str, str] = {}
+        shorts: dict[str, str] = {}
+        for flag, option in all_flags.items():
+            if flag.startswith("--"):
+                flags[flag[2:]] = option
+            else:
+                shorts[flag[1:]] = option
+        return shorts, flags
+    
+    def _find_invalid_args(self):
+        """Raise error when current arguments are not valid.
+
+        Raises
+        ------
+        MagicError
+        """
+        args, first_optional = self.REQUIRED_ARGS
+
+        for index in range(first_optional):
+            try:
+                self._args[index]
+            except IndexError:
+                raise MagicError(f"Missing argument: {args[index]} at position {index+1}")
+
+        for index, rules in self.ARGS_RULES.items():
+            try:
+                for [rule, message] in rules:
+                    if not rule(self._args[index]):
+                        raise MagicError(f"Argument at position {index+1} is not valid: {message}")
+            except IndexError:
+                # Presence of required args already checked
+                break
+
+    def _find_invalid_flags(self):
+        """Raise error when current flags are not valid
+
+        Raises
+        ------
+        MagicError
+        """
+        for flag, value in self._flags.items():
+            if flag not in self.VALID_FLAGS:
+                raise MagicError(f"Unknown flag: --{flag}")
+            if value is None:
+                raise MagicError(f"No value for flag: --{flag}")
             
-    return [response] if type(response) is str else response
+        for short, value in self._shorts.items():
+            if short not in self.VALID_SHORTS:
+                raise MagicError(f"Unknown shorthand flag: -{short}")
+              
+            if value is None:
+                raise MagicError(f"No value for flag: -{short}")
+    
+    def _get_default_arg(self, index: int, default: str|None=None):
+        """Try to access an arg, return default if not present
+        
+        Parameters
+        ----------
+        index: int
+            Index of arg
+        default: str | None
+            Default value
 
-def categorize_flags(**all_flags: str):
-    """Separates shorthand flags from normal flags
+        Returns
+        -------
+        str | None
+        """
+        return self._args[index] if -len(self._args) <= index < len(self._args) else default
+    
+    def _get_default_flag(self, long: str|None=None, short: str|None=None, default: str|None=None):
+        """Try to access a flag, return default if not present
+        
+        Parameters
+        ----------
+        long: str
+            Name of long flag
+        long: str
+            Name of short flag
+        default: str | None
+            Default value
 
-    Parameters
-    ----------
-    flags: dict[str, str]
-
-    Returns
-    -------
-    tuple[shorts: dict[str, str], flags: dict[str, str]]
-    """
-    flags: dict[str, str] = {}
-    shorts: dict[str, str] = {}
-    for flag, option in all_flags.items():
-        if flag.startswith("--"):
-            flags[flag[2:]] = option
-        else:
-            shorts[flag[1:]] = option
-    return shorts, flags
+        Returns
+        -------
+        str | None
+        """
+        return self._flags.get(long, self._flags.get(short, default))
 
 
 ##############################
