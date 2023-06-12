@@ -24,4 +24,4 @@ class Magic(BaseMagic):
         return []
     
     def _execute_magic(self) -> list[str] | str:
-        return [m.__name__.lower() for m in BaseMagic.__subclasses__()]
+        return self.magics_names

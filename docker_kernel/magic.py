@@ -166,6 +166,21 @@ class Magic(ABC):
             if magic.__name__.lower() == name.removeprefix("%").lower():
                 return magic
         return None
+    
+    @classmethod
+    @property
+    # NOTE: Works, but is supposed to be removed: https://docs.python.org/3.11/library/functions.html#classmethod
+    def magics_names(cls) -> list[str]:
+        """List all magic names available
+
+        NOTE: The magics must be run once (e.g. via __init__.py) to be listed here
+
+        Returns
+        -------
+        list[str]
+        """
+        # Magic commands must start with %
+        return [m.__name__.lower() for m in Magic.__subclasses__()]
 
     @staticmethod
     def _categorize_flags(**all_flags: str) -> tuple[dict[str, str], dict[str, str]]:

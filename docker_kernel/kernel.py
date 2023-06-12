@@ -76,6 +76,23 @@ class DockerKernel(Kernel):
 
         return {'status': 'ok', 'execution_count': self.execution_count, 'payload': self._payload, 'user_expression': {}}
         
+    def do_complete(self, code: str, cursor_pos: int):
+        """For now only provide completion for magics"""
+        matches = []
+        if code.startswith("%"):
+            snippets = code.split(" ")
+            if cursor_pos <= len(snippets[0]):
+                code_magic = code.removeprefix("%")
+                matches = [m for m in Magic.magics_names if m.startswith(code_magic)]
+        
+        return {
+            "matches": matches,
+            "cursor_end": cursor_pos,
+            "cursor_start": cursor_pos,
+            "metadata": {},
+            "status": "ok",
+        }
+
     def create_build_stage(self, code):
         """ Add current *_sha1* to the code."""
         if self._sha1 is not None:
