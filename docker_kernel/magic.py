@@ -185,6 +185,7 @@ class Magic(ABC):
 
     @staticmethod
     def do_complete(code: str, cursor_pos: int) -> list[str]:
+        segments = code.split(" ")
         first_word = get_first_word(code)
     
         # Code has nothing to do with magics
@@ -210,7 +211,8 @@ class Magic(ABC):
         if word.startswith("-"):
             flags = [f"--{f}" for f in magic.VALID_FLAGS()]
             shorts = [f"-{s}" for s in magic.VALID_SHORTS()]
-            return [f for f in flags + shorts if f.startswith(partial_word)]
+            new_flags = [f for f in flags + shorts if f not in segments]
+            return [f for f in new_flags if f.startswith(partial_word)]
     
         return []
 
