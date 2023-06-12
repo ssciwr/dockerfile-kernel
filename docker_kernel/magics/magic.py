@@ -15,12 +15,14 @@ class Magic(BaseMagic):
     def ARGS_RULES(self) -> dict[int, tuple[Callable[[str], bool], str]]:
         return {}
     
+    @staticmethod
     @property
-    def VALID_FLAGS(self):
+    def VALID_FLAGS():
         return []
 
+    @staticmethod
     @property
-    def VALID_SHORTS(self):
+    def VALID_SHORTS():
         return []
     
     def _execute_magic(self) -> list[str] | str:

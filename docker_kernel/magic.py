@@ -72,9 +72,10 @@ class Magic(ABC):
         """
         pass
 
+    @staticmethod
     @property
     @abstractmethod
-    def VALID_FLAGS(self) -> list[str]:
+    def VALID_FLAGS() -> list[str]:
         """Flags that won't throw an error
 
         Example
@@ -83,9 +84,10 @@ class Magic(ABC):
         """
         pass
 
+    @staticmethod
     @property
     @abstractmethod
-    def VALID_SHORTS(self) -> list[str]:
+    def VALID_SHORTS() -> list[str]:
         """Short flags that won't throw an error
 
         Example

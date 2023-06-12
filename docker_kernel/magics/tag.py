@@ -22,12 +22,14 @@ class Tag(Magic):
                    "Image name can't end in a ':'")],
         }
 
+    @staticmethod
     @property
-    def VALID_FLAGS(self):
+    def VALID_FLAGS():
         return ["image"]
 
+    @staticmethod
     @property
-    def VALID_SHORTS(self):
+    def VALID_SHORTS():
         return ["i"]
     
     def _execute_magic(self) -> list[str] | str:

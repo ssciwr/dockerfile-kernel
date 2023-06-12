@@ -28,12 +28,14 @@ class RandomInt(Magic):
                  "Step must be a positive integer")]
         }
 
+    @staticmethod
     @property
-    def VALID_FLAGS(self):
+    def VALID_FLAGS():
         return []
 
+    @staticmethod
     @property
-    def VALID_SHORTS(self):
+    def VALID_SHORTS():
         return []
     
     def _execute_magic(self) -> list[str] | str:
