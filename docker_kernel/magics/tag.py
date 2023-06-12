@@ -7,12 +7,12 @@ class Tag(Magic):
     def __init__(self, kernle, *args, **flags):
         super().__init__(kernle, *args, **flags)
 
-    @property
-    def REQUIRED_ARGS(self) -> tuple[list[str], int]:
+    @staticmethod
+    def REQUIRED_ARGS() -> tuple[list[str], int]:
         return (["target"], 1)
         
-    @property
-    def ARGS_RULES(self) -> dict[int, list[tuple[Callable[[str], bool], str]]]:
+    @staticmethod
+    def ARGS_RULES() -> dict[int, list[tuple[Callable[[str], bool], str]]]:
         return {
             0: [(lambda arg: not arg.startswith(":"),
                  "Image name can't start with a ':'"),
@@ -22,12 +22,12 @@ class Tag(Magic):
                    "Image name can't end in a ':'")],
         }
 
-    @property
-    def VALID_FLAGS(self):
+    @staticmethod
+    def VALID_FLAGS():
         return ["image"]
 
-    @property
-    def VALID_SHORTS(self):
+    @staticmethod
+    def VALID_SHORTS():
         return ["i"]
     
     def _execute_magic(self) -> list[str] | str:

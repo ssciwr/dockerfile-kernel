@@ -1,11 +1,9 @@
-from docker_kernel import Magic
+from docker_kernel.magic import Magic
 from typing import Callable
 
-import random
 
-
-class Random(Magic):
-    """Generate random float between 0 and 1 """
+class Magics(Magic):
+    """List all available magics """
     def __init__(self, kernle, *args, **flags):
         super().__init__(kernle, *args, **flags)
 
@@ -17,7 +15,6 @@ class Random(Magic):
     def ARGS_RULES() -> dict[int, tuple[Callable[[str], bool], str]]:
         return {}
     
-
     @staticmethod
     def VALID_FLAGS():
         return []
@@ -27,4 +24,6 @@ class Random(Magic):
         return []
     
     def _execute_magic(self) -> list[str] | str:
-        return str(random.random())
+        magics = self.magics_names
+        magics.sort()
+        return magics

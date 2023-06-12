@@ -1,9 +1,10 @@
 import docker
 import io
 import json
-from docker_kernel.magic import Magic
-
 from ipykernel.kernelbase import Kernel
+
+from .magic import Magic
+from .utils.notebook import get_cursor_frame, get_cursor_words
 
 # The single source of version truth
 __version__ = "0.0.1"
@@ -76,6 +77,36 @@ class DockerKernel(Kernel):
 
         return {'status': 'ok', 'execution_count': self.execution_count, 'payload': self._payload, 'user_expression': {}}
         
+    def do_complete(self, code: str, cursor_pos: int):
+        """Provide code completion
+        
+        Parameters
+        ----------
+        code: str
+            The code already present
+        cursor_pos: int
+            The position in the code where completion is requested
+
+        Returns
+        -------
+        complete_reply: dict
+
+        See [here](https://jupyter-client.readthedocs.io/en/stable/messaging.html#completion) for reference
+        """
+        matches = []
+        matches.extend(Magic.do_complete(code, cursor_pos))
+        matches.sort()
+
+        cursor_start, cursor_end = get_cursor_frame(code, cursor_pos)
+        
+        return {
+            "status": "ok",
+            "matches": matches,
+            "cursor_start": cursor_start,
+            "cursor_end": cursor_end,
+            "metadata": {},
+        }
+
     def create_build_stage(self, code):
         """ Add current *_sha1* to the code."""
         if self._sha1 is not None:

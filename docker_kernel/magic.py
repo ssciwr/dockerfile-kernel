@@ -11,6 +11,7 @@ import itertools
 from itertools import zip_longest
 
 from .magics.errors import MagicError
+from .utils.notebook import get_cursor_words, get_cursor_frame, get_first_word
 
 
 class Magic(ABC):
@@ -32,9 +33,9 @@ class Magic(ABC):
         self._shorts, self._flags = Magic._categorize_flags(**flags)
         self._find_invalid_flags()
 
-    @property
+    @staticmethod
     @abstractmethod
-    def REQUIRED_ARGS(self) -> tuple[list[str], int]:
+    def REQUIRED_ARGS() -> tuple[list[str], int]:
         """Defines how many arguments are expected and which are required.
 
         The returned index is the first that is optional.
@@ -44,10 +45,10 @@ class Magic(ABC):
         (["name", "path", "author"], 1)
         """
         pass
-        
-    @property
+ 
+    @staticmethod     
     @abstractmethod
-    def ARGS_RULES(self) -> dict[int, list[tuple[Callable[[str], bool], str]]]:
+    def ARGS_RULES() -> dict[int, list[tuple[Callable[[str], bool], str]]]:
         """Conditions individual arguments must meet.
         NOTE: Conditions based on relations between arguments must be handled inside `_execute_magic()`
         NOTE: Conditions will be checked in order
@@ -71,9 +72,9 @@ class Magic(ABC):
         """
         pass
 
-    @property
+    @staticmethod
     @abstractmethod
-    def VALID_FLAGS(self) -> list[str]:
+    def VALID_FLAGS() -> list[str]:
         """Flags that won't throw an error
 
         Example
@@ -82,9 +83,9 @@ class Magic(ABC):
         """
         pass
 
-    @property
+    @staticmethod
     @abstractmethod
-    def VALID_SHORTS(self) -> list[str]:
+    def VALID_SHORTS() -> list[str]:
         """Short flags that won't throw an error
 
         Example
@@ -166,6 +167,54 @@ class Magic(ABC):
             if magic.__name__.lower() == name.removeprefix("%").lower():
                 return magic
         return None
+    
+    @classmethod
+    @property
+    # NOTE: Works, but is supposed to be removed: https://docs.python.org/3.11/library/functions.html#classmethod
+    def magics_names(cls) -> list[str]:
+        """List all magic names available
+
+        NOTE: The magics must be run once (e.g. via __init__.py) to be listed here
+
+        Returns
+        -------
+        list[str]
+        """
+        # Magic commands must start with %
+        return [m.__name__.lower() for m in Magic.__subclasses__()]
+
+    @staticmethod
+    def do_complete(code: str, cursor_pos: int) -> list[str]:
+        segments = code.split(" ")
+        first_word = get_first_word(code)
+    
+        # Code has nothing to do with magics
+        if not first_word.startswith("%"):
+            return []
+
+        word, _ = get_cursor_words(code, cursor_pos)
+        start, _ = get_cursor_frame(code, cursor_pos)
+
+        # Word left of cursor
+        partial_word = word[:cursor_pos - start]
+
+        # Cursor on magic name
+        if (word == first_word):
+            return [f"%{m}" for m in Magic.magics_names if f"%{m}".startswith(partial_word)]
+        
+        magic = Magic._get_magic(first_word)
+        # Magic not known
+        if magic is None:
+            return []
+        
+        # Cursor on flag definition
+        if word.startswith("-"):
+            flags = [f"--{f}" for f in magic.VALID_FLAGS()]
+            shorts = [f"-{s}" for s in magic.VALID_SHORTS()]
+            new_flags = [f for f in flags + shorts if f not in segments]
+            return [f for f in new_flags if f.startswith(partial_word)]
+    
+        return []
 
     @staticmethod
     def _categorize_flags(**all_flags: str) -> tuple[dict[str, str], dict[str, str]]:
@@ -195,7 +244,7 @@ class Magic(ABC):
         ------
         MagicError
         """
-        args, first_optional = self.REQUIRED_ARGS
+        args, first_optional = self.REQUIRED_ARGS()
 
         for index in range(first_optional):
             try:
@@ -203,7 +252,7 @@ class Magic(ABC):
             except IndexError:
                 raise MagicError(f"Missing argument: {args[index]} at position {index+1}")
 
-        for index, rules in self.ARGS_RULES.items():
+        for index, rules in self.ARGS_RULES().items():
             try:
                 for [rule, message] in rules:
                     if not rule(self._args[index]):
@@ -220,13 +269,13 @@ class Magic(ABC):
         MagicError
         """
         for flag, value in self._flags.items():
-            if flag not in self.VALID_FLAGS:
+            if flag not in self.VALID_FLAGS():
                 raise MagicError(f"Unknown flag: --{flag}")
             if value is None:
                 raise MagicError(f"No value for flag: --{flag}")
             
         for short, value in self._shorts.items():
-            if short not in self.VALID_SHORTS:
+            if short not in self.VALID_SHORTS():
                 raise MagicError(f"Unknown shorthand flag: -{short}")
               
             if value is None:
