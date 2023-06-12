@@ -8,12 +8,10 @@ class Tag(Magic):
         super().__init__(kernle, *args, **flags)
 
     @staticmethod
-    @property
     def REQUIRED_ARGS() -> tuple[list[str], int]:
         return (["target"], 1)
         
     @staticmethod
-    @property
     def ARGS_RULES() -> dict[int, list[tuple[Callable[[str], bool], str]]]:
         return {
             0: [(lambda arg: not arg.startswith(":"),
@@ -25,12 +23,10 @@ class Tag(Magic):
         }
 
     @staticmethod
-    @property
     def VALID_FLAGS():
         return ["image"]
 
     @staticmethod
-    @property
     def VALID_SHORTS():
         return ["i"]
     

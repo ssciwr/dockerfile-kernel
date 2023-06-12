@@ -34,7 +34,6 @@ class Magic(ABC):
         self._find_invalid_flags()
 
     @staticmethod
-    @property
     @abstractmethod
     def REQUIRED_ARGS() -> tuple[list[str], int]:
         """Defines how many arguments are expected and which are required.
@@ -48,7 +47,6 @@ class Magic(ABC):
         pass
  
     @staticmethod     
-    @property
     @abstractmethod
     def ARGS_RULES() -> dict[int, list[tuple[Callable[[str], bool], str]]]:
         """Conditions individual arguments must meet.
@@ -75,7 +73,6 @@ class Magic(ABC):
         pass
 
     @staticmethod
-    @property
     @abstractmethod
     def VALID_FLAGS() -> list[str]:
         """Flags that won't throw an error
@@ -87,7 +84,6 @@ class Magic(ABC):
         pass
 
     @staticmethod
-    @property
     @abstractmethod
     def VALID_SHORTS() -> list[str]:
         """Short flags that won't throw an error
@@ -230,7 +226,7 @@ class Magic(ABC):
         ------
         MagicError
         """
-        args, first_optional = self.REQUIRED_ARGS
+        args, first_optional = self.REQUIRED_ARGS()
 
         for index in range(first_optional):
             try:
@@ -238,7 +234,7 @@ class Magic(ABC):
             except IndexError:
                 raise MagicError(f"Missing argument: {args[index]} at position {index+1}")
 
-        for index, rules in self.ARGS_RULES.items():
+        for index, rules in self.ARGS_RULES().items():
             try:
                 for [rule, message] in rules:
                     if not rule(self._args[index]):
@@ -255,13 +251,13 @@ class Magic(ABC):
         MagicError
         """
         for flag, value in self._flags.items():
-            if flag not in self.VALID_FLAGS:
+            if flag not in self.VALID_FLAGS():
                 raise MagicError(f"Unknown flag: --{flag}")
             if value is None:
                 raise MagicError(f"No value for flag: --{flag}")
             
         for short, value in self._shorts.items():
-            if short not in self.VALID_SHORTS:
+            if short not in self.VALID_SHORTS():
                 raise MagicError(f"Unknown shorthand flag: -{short}")
               
             if value is None:

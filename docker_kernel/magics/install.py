@@ -8,22 +8,18 @@ class Install(Magic):
         super().__init__(kernle, *args, **flags)
 
     @staticmethod
-    @property
     def REQUIRED_ARGS() -> tuple[list[str], int]:
         return (["package-manager", "package"], 2)
         
     @staticmethod
-    @property
     def ARGS_RULES() -> dict[int, tuple[Callable[[str], bool], str]]:
         return {}
     
     @staticmethod
-    @property
     def VALID_FLAGS():
         return []
 
     @staticmethod
-    @property
     def VALID_SHORTS():
         return []
     

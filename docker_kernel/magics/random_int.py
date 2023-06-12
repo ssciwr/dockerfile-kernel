@@ -13,12 +13,10 @@ class RandomInt(Magic):
         super().__init__(kernle, *args, **flags)
 
     @staticmethod
-    @property
     def REQUIRED_ARGS() -> tuple[list[str], int]:
         return (["stop", "start", "step"], 1)
         
     @staticmethod
-    @property
     def ARGS_RULES() -> dict[int, list[tuple[Callable[[str], bool], str]]]:
         is_positive_integer: Callable[[str], bool] = lambda arg: try_convert(arg, None, int) is not None
         return {
@@ -31,12 +29,10 @@ class RandomInt(Magic):
         }
 
     @staticmethod
-    @property
     def VALID_FLAGS():
         return []
 
     @staticmethod
-    @property
     def VALID_SHORTS():
         return []
     
