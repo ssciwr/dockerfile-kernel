@@ -145,6 +145,9 @@ class DockerKernel(Kernel):
         Returns
         -------
         NONE
+
+        See [here](https://jupyter-client.readthedocs.io/en/stable/messaging.html#payloads-deprecated) for reference
+
         """
         self._payload =[{
             "source": source,
