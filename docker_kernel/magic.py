@@ -279,14 +279,17 @@ class Magic(ABC):
         ------
         MagicError
         """
+        options = self.VALID_OPTIONS()
+        flags = [o["name"] for o in options]
+        shorts = [o["short"] for o in options if not None]
         for flag, value in self._flags.items():
-            if flag not in self.VALID_OPTIONS():
+            if flag not in flags:
                 raise MagicError(f"Unknown flag: --{flag}")
             if value is None:
                 raise MagicError(f"No value for flag: --{flag}")
             
         for short, value in self._shorts.items():
-            if short not in self.VALID_SHORTS():
+            if short not in shorts:
                 raise MagicError(f"Unknown shorthand flag: -{short}")
               
             if value is None:
