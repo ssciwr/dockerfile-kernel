@@ -11,7 +11,7 @@ import itertools
 from itertools import zip_longest
 
 from .magics.errors import MagicError
-from .utils.notebook import get_cursor_words, get_cursor_frame
+from .utils.notebook import get_cursor_words, get_cursor_frame, get_first_word
 
 
 class Magic(ABC):
@@ -185,16 +185,32 @@ class Magic(ABC):
 
     @staticmethod
     def do_complete(code: str, cursor_pos: int) -> list[str]:
-        if not code.lstrip().startswith("%"):
+        first_word = get_first_word(code)
+    
+        # Code has nothing to do with magics
+        if not first_word.startswith("%"):
             return []
 
-        word, left_word = get_cursor_words(code, cursor_pos)
+        word, _ = get_cursor_words(code, cursor_pos)
         start, _ = get_cursor_frame(code, cursor_pos)
 
         # Word left of cursor
         partial_word = word[:cursor_pos - start]
-        if (left_word is None and word.startswith("%")):
+
+        # Cursor on magic name
+        if (word == first_word):
             return [f"%{m}" for m in Magic.magics_names if f"%{m}".startswith(partial_word)]
+        
+        magic = Magic._get_magic(first_word)
+        # Magic not known
+        if magic is None:
+            return []
+        
+        # Cursor on flag definition
+        if word.startswith("-"):
+            flags = [f"--{f}" for f in magic.VALID_FLAGS()]
+            shorts = [f"-{s}" for s in magic.VALID_SHORTS()]
+            return [f for f in flags + shorts if f.startswith(partial_word)]
     
         return []
 

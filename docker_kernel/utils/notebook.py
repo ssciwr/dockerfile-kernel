@@ -79,3 +79,17 @@ def get_cursor_frame(code: str, cursor_pos: int) -> tuple[int, int]:
     start = start if word_index == 0 else start + 1
     end = start + len(word)
     return start, end
+
+def get_first_word(code: str) -> str | None:
+    """Return first non-empty word
+
+    Parameters
+    ----------
+    code: str
+        Code of the cell
+
+    Returns
+    -------
+    str | None
+    """
+    return code.lstrip().split(" ")[0]
