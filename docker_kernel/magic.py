@@ -10,8 +10,9 @@ import re
 import itertools
 from itertools import zip_longest
 
-from .magics.errors import MagicError
+from .magics.helper.errors import MagicError
 from .utils.notebook import get_cursor_words, get_cursor_frame, get_first_word
+from .magics.helper.types import FlagDict
 
 
 class Magic(ABC):
@@ -74,23 +75,27 @@ class Magic(ABC):
 
     @staticmethod
     @abstractmethod
-    def VALID_FLAGS() -> list[str]:
-        """Flags that won't throw an error
+    def VALID_OPTIONS() -> list[FlagDict]:
+        """ Flags that won't throw an error.
+        
+        Define their name, shorthand (if available), default value and description
 
         Example
         -------
-        ["image", "path"]
-        """
-        pass
-
-    @staticmethod
-    @abstractmethod
-    def VALID_SHORTS() -> list[str]:
-        """Short flags that won't throw an error
-
-        Example
-        -------
-        ["i", "p"]
+        [
+            {
+                "name": "path",
+                "short": "p",
+                "default": None,
+                "desc": "Path to image"
+            },
+            {
+                "name": "workdir",
+                "short": None,
+                "default": None,
+                "desc": "Directory to execute terminal in"
+            }
+        ]
         """
         pass
 
@@ -209,9 +214,15 @@ class Magic(ABC):
         
         # Cursor on flag definition
         if word.startswith("-"):
-            flags = [f"--{f}" for f in magic.VALID_FLAGS()]
-            shorts = [f"-{s}" for s in magic.VALID_SHORTS()]
-            new_flags = [f for f in flags + shorts if f not in segments]
+            options = magic.VALID_OPTIONS()
+            new_flags = []
+            for o in options:
+                name = f"--{o['name']}"
+                short = f"-{o['short']}" if o['short'] is not None else None
+                if name not in segments and short not in segments:
+                    new_flags.append(name)
+                    if short is not None:
+                        new_flags.append(short)
             return [f for f in new_flags if f.startswith(partial_word)]
     
         return []
@@ -269,7 +280,7 @@ class Magic(ABC):
         MagicError
         """
         for flag, value in self._flags.items():
-            if flag not in self.VALID_FLAGS():
+            if flag not in self.VALID_OPTIONS():
                 raise MagicError(f"Unknown flag: --{flag}")
             if value is None:
                 raise MagicError(f"No value for flag: --{flag}")

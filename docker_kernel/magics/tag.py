@@ -1,6 +1,8 @@
-from docker_kernel.magic import Magic
 from typing import Callable
-from .errors import MagicError
+
+from docker_kernel.magic import Magic
+from .helper.errors import MagicError
+from.helper.types import FlagDict
 
 class Tag(Magic):
     """Save a docker image via a name and tag in the kernel for later access."""
@@ -23,12 +25,15 @@ class Tag(Magic):
         }
 
     @staticmethod
-    def VALID_FLAGS():
-        return ["image"]
-
-    @staticmethod
-    def VALID_SHORTS():
-        return ["i"]
+    def VALID_OPTIONS() -> list[FlagDict]:
+        return [
+            {
+                "name": "image",
+                "short": "i",
+                "default": None,
+                "desc": "Image to be tagged"
+            }
+        ]
     
     def _execute_magic(self) -> list[str] | str:
         target = self._args[0]

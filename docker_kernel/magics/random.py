@@ -1,7 +1,9 @@
-from docker_kernel import Magic
 from typing import Callable
 
 import random
+
+from docker_kernel.magic import Magic
+from .helper.types import FlagDict
 
 
 class Random(Magic):
@@ -16,14 +18,9 @@ class Random(Magic):
     @staticmethod
     def ARGS_RULES() -> dict[int, tuple[Callable[[str], bool], str]]:
         return {}
-    
 
     @staticmethod
-    def VALID_FLAGS():
-        return []
-
-    @staticmethod
-    def VALID_SHORTS():
+    def VALID_OPTIONS() -> list[FlagDict]:
         return []
     
     def _execute_magic(self) -> list[str] | str:

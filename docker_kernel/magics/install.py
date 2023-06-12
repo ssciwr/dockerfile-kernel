@@ -1,5 +1,7 @@
-from docker_kernel.magic import Magic
 from typing import Callable
+
+from docker_kernel.magic import Magic
+from .helper.types import FlagDict
 
 
 class Install(Magic):
@@ -16,11 +18,7 @@ class Install(Magic):
         return {}
     
     @staticmethod
-    def VALID_FLAGS():
-        return []
-
-    @staticmethod
-    def VALID_SHORTS():
+    def VALID_OPTIONS() -> list[FlagDict]:
         return []
     
     def _execute_magic(self) -> list[str] | str:
