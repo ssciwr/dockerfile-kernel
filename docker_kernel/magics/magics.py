@@ -1,8 +1,8 @@
-from docker_kernel.magic import Magic as BaseMagic
+from docker_kernel.magic import Magic
 from typing import Callable
 
 
-class Magic(BaseMagic):
+class Magics(Magic):
     """List all available magics """
     def __init__(self, kernle, *args, **flags):
         super().__init__(kernle, *args, **flags)
@@ -26,4 +26,6 @@ class Magic(BaseMagic):
         return []
     
     def _execute_magic(self) -> list[str] | str:
-        return self.magics_names
+        magics = self.magics_names
+        magics.sort()
+        return magics
