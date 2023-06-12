@@ -22,10 +22,16 @@ class Install(Magic):
         return []
     
     def _execute_magic(self) -> list[str] | str:
+        package = " ".join(self._args[1:])
         match self._args[0].lower():
             case "apt-get":
-                package = " ".join(self._args[1:])
                 code = f"RUN apt-get update && apt-get install -y {package} && rm -rf /var/lib/apt/lists/*"
+            case "conda":
+                code = f"RUN conda update -n base -c defaults conda && conda install -y {package} && conda clean -afy"
+            case "npm":
+                code = f"RUN npm install -g npm@latest && npm install {package} && npm cache clean --force"
+            case "pip":
+                code = f"RUN pip install --upgrade pip && pip install {package} && rm -rf /var/lib/apt/lists/*"
             case other:
                 return "Package manager not available (currently available: apt-get)"
         self._kernel.set_payload("set_next_input", code, True)
