@@ -21,7 +21,7 @@ class Magics(Magic):
     def VALID_OPTIONS() -> list[FlagDict]:
         return []
     
-    def _execute_magic(self) -> list[str] | str:
+    def _execute_magic(self) -> None:
         magics = self.magics_names
         magics.sort()
-        return magics
+        self._kernel.send_response("\n".join(magics))

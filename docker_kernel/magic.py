@@ -115,6 +115,10 @@ class Magic(ABC):
             In kwargs: Normal flags start with a hyphen, shorthand flags omit it.
 
             Null for all if magic not known.
+
+        Raises
+        ------
+        MagicError
         """
         # Remove multi-/ trailing / leading spaces
         code = re.sub(' +', ' ', code).strip()
@@ -142,12 +146,11 @@ class Magic(ABC):
 
         return magic_class, args, flags
 
-    def call_magic(self) -> list[str]:
-        response = self._execute_magic()
-        return [response] if type(response) is str else response
+    def call_magic(self) -> None:
+        self._execute_magic()
 
     @abstractmethod
-    def _execute_magic(self) -> list[str] | str:
+    def _execute_magic(self) -> None:
         pass
 
     @staticmethod
@@ -162,6 +165,10 @@ class Magic(ABC):
         Returns
         -------
         Magic | None
+
+        Raises
+        ------
+        MagicError
         """
         # Magic commands must start with %
         if not name.startswith("%"):
@@ -171,7 +178,9 @@ class Magic(ABC):
         for magic in magics:
             if magic.__name__.lower() == name.removeprefix("%").lower():
                 return magic
-        return None
+        
+        # No magic fouind but indicated by leading &
+        raise MagicError(f"No magic named {name.removeprefix('%')}")
     
     @classmethod
     @property

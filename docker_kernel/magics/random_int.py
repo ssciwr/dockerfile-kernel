@@ -33,7 +33,7 @@ class RandomInt(Magic):
     def VALID_OPTIONS() -> list[FlagDict]:
         return []
     
-    def _execute_magic(self) -> list[str] | str:
+    def _execute_magic(self) -> None:
         stop = int(self._args[0])
         start = self._get_default_arg(1, 0)
         step = self._get_default_arg(2, 1)
@@ -41,4 +41,5 @@ class RandomInt(Magic):
         if start >= stop:
             raise MagicError("Empty range: start must be smaller than stop")
 
-        return str(random.randrange(start, stop, step))
+        r = random.randrange(start, stop, step)
+        self._kernel.send_response(str(r))

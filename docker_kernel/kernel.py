@@ -4,7 +4,8 @@ import json
 from ipykernel.kernelbase import Kernel
 
 from .magic import Magic
-from .utils.notebook import get_cursor_frame, get_cursor_words
+from .utils.notebook import get_cursor_frame
+from.magics.helper.errors import MagicError
 
 # The single source of version truth
 __version__ = "0.0.1"
@@ -55,18 +56,19 @@ class DockerKernel(Kernel):
         dict
             Specified [here](https://jupyter-client.readthedocs.io/en/stable/messaging.html#execution-results)
         """
-        MagicClass, args, flags = Magic.detect_magic(code)
         self._payload = []
-
+        
         ####################
         # Magic execution
-        if MagicClass is not None:
-            try:
-                response = MagicClass(self, *args, **flags).call_magic()
-            except TypeError as e:
-                response = e.args
-            self.send_response("\n".join(response))
-            return {'status': 'ok', 'execution_count': self.execution_count, 'payload': self._payload, 'user_expression': {}}
+        try:
+            MagicClass, args, flags = Magic.detect_magic(code)
+
+            
+            if MagicClass is not None:
+                MagicClass(self, *args, **flags).call_magic()
+                return {'status': 'ok', 'execution_count': self.execution_count, 'payload': self._payload, 'user_expression': {}}
+        except MagicError as e:
+            self.send_response(str(e))
         
         ####################
         # Docker execution

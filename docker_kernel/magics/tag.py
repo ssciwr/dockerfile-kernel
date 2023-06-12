@@ -35,7 +35,7 @@ class Tag(Magic):
             }
         ]
     
-    def _execute_magic(self) -> list[str] | str:
+    def _execute_magic(self) -> None:
         target = self._args[0]
         try:
             name, tag = target.split(":")
@@ -56,4 +56,4 @@ class Tag(Magic):
 
         image_str = image_id.removeprefix("sha256:")
         image_str = f"{image_str[:10]}..." if len(image_str) >= 10 else image_str
-        return f"Image {image_str} tagged"
+        self._kernel.send_response(f"Image {image_str} tagged")

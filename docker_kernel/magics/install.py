@@ -37,4 +37,3 @@ class Install(Magic):
         self._kernel.set_payload("set_next_input", code, True)
         code = self._kernel.create_build_stage(code)
         self._kernel.build_image(code)
-        return ""

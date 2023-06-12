@@ -23,5 +23,6 @@ class Random(Magic):
     def VALID_OPTIONS() -> list[FlagDict]:
         return []
     
-    def _execute_magic(self) -> list[str] | str:
-        return str(random.random())
+    def _execute_magic(self) -> None:
+        r = random.random()
+        self._kernel.send_response(str(r))
