@@ -30,4 +30,5 @@ class Install(Magic):
                 return "Package manager not available (currently available: apt-get)"
         self._kernel.set_payload("set_next_input", code, True)
         code = self._kernel.create_build_stage(code)
-        return self._kernel.build_image(code)
+        self._kernel.build_image(code)
+        return ""

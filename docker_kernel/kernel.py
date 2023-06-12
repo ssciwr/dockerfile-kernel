@@ -65,15 +65,13 @@ class DockerKernel(Kernel):
                 response = MagicClass(self, *args, **flags).call_magic()
             except TypeError as e:
                 response = e.args
-            self.send_response(self.iopub_socket, 'stream', {"name": "stdout", "text": "\n".join(response)})
+            self.send_response("\n".join(response))
             return {'status': 'ok', 'execution_count': self.execution_count, 'payload': self._payload, 'user_expression': {}}
         
         ####################
         # Docker execution
         code = self.create_build_stage(code)
-        logs = self.build_image(code)
-        for log in logs:
-            self.send_response(self.iopub_socket, 'stream', {"name": "stdout", "text": log})
+        self.build_image(code)
 
         return {'status': 'ok', 'execution_count': self.execution_count, 'payload': self._payload, 'user_expression': {}}
         
@@ -126,8 +124,11 @@ class DockerKernel(Kernel):
             if 'stream' in loginfo:
                 log = loginfo['stream']
                 if log.strip() != "":
-                    logs.append(log)
-        return logs
+                    self.send_response(log)
+
+    def send_response(self, content_text, stream=None, msg_or_type="stream", content_name="stdout"):
+        stream = self.iopub_socket if stream is None else stream
+        return super().send_response(stream, msg_or_type, {"name": content_name, "text": content_text})
     
     def set_payload(self, source: str, text: str, replace: bool):
         """ Trigger frontend action via payloads. 
