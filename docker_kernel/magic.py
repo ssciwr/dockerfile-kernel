@@ -33,9 +33,10 @@ class Magic(ABC):
         self._shorts, self._flags = Magic._categorize_flags(**flags)
         self._find_invalid_flags()
 
+    @staticmethod
     @property
     @abstractmethod
-    def REQUIRED_ARGS(self) -> tuple[list[str], int]:
+    def REQUIRED_ARGS() -> tuple[list[str], int]:
         """Defines how many arguments are expected and which are required.
 
         The returned index is the first that is optional.
@@ -45,10 +46,11 @@ class Magic(ABC):
         (["name", "path", "author"], 1)
         """
         pass
-        
+ 
+    @staticmethod     
     @property
     @abstractmethod
-    def ARGS_RULES(self) -> dict[int, list[tuple[Callable[[str], bool], str]]]:
+    def ARGS_RULES() -> dict[int, list[tuple[Callable[[str], bool], str]]]:
         """Conditions individual arguments must meet.
         NOTE: Conditions based on relations between arguments must be handled inside `_execute_magic()`
         NOTE: Conditions will be checked in order
