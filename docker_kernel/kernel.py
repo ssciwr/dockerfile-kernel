@@ -1,9 +1,10 @@
 import docker
 import io
 import json
-from docker_kernel.magic import Magic
-
 from ipykernel.kernelbase import Kernel
+
+from .magic import Magic
+from .utils.notebook import get_cursor_frame, get_cursor_words
 
 # The single source of version truth
 __version__ = "0.0.1"
@@ -77,20 +78,33 @@ class DockerKernel(Kernel):
         return {'status': 'ok', 'execution_count': self.execution_count, 'payload': self._payload, 'user_expression': {}}
         
     def do_complete(self, code: str, cursor_pos: int):
-        """For now only provide completion for magics"""
+        """Provide code completion
+        
+        Parameters
+        ----------
+        code: str
+            The code already present
+        cursor_pos: int
+            The position in the code where completion is requested
+
+        Returns
+        -------
+        complete_reply: dict
+
+        See [here](https://jupyter-client.readthedocs.io/en/stable/messaging.html#completion) for reference
+        """
         matches = []
-        if code.startswith("%"):
-            snippets = code.split(" ")
-            if cursor_pos <= len(snippets[0]):
-                code_magic = code.removeprefix("%")
-                matches = [m for m in Magic.magics_names if m.startswith(code_magic)]
+        matches.extend(Magic.do_complete(code, cursor_pos))
+        matches.sort()
+
+        cursor_start, cursor_end = get_cursor_frame(code, cursor_pos)
         
         return {
-            "matches": matches,
-            "cursor_end": cursor_pos,
-            "cursor_start": cursor_pos,
-            "metadata": {},
             "status": "ok",
+            "matches": matches,
+            "cursor_start": cursor_start,
+            "cursor_end": cursor_end,
+            "metadata": {},
         }
 
     def create_build_stage(self, code):
