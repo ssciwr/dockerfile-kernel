@@ -301,6 +301,10 @@ class Magic(ABC):
               
             if value is None:
                 raise MagicError(f"No value for flag: -{short}")
+        
+        for flag, detail in options.items():
+            if flag in self._flags.keys() and detail["short"] in self._shorts.keys():
+                raise MagicError(f"Duplicate flag: -{short} and --{flag}")
     
     def _get_default_arg(self, index: int, default: str|None=None):
         """Try to access an arg, return default if not present
