@@ -18,8 +18,8 @@ class Magics(Magic):
         return {}
     
     @staticmethod
-    def VALID_OPTIONS() -> list[FlagDict]:
-        return []
+    def VALID_OPTIONS() -> dict[str, FlagDict]:
+        return {}
     
     def _execute_magic(self) -> None:
         magics = self.magics_names

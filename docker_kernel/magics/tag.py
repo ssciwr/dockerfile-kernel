@@ -25,15 +25,14 @@ class Tag(Magic):
         }
 
     @staticmethod
-    def VALID_OPTIONS() -> list[FlagDict]:
-        return [
-            {
-                "name": "image",
+    def VALID_OPTIONS() -> dict[str, FlagDict]:
+        return {
+            "image" : {
                 "short": "i",
                 "default": None,
                 "desc": "Image to be tagged"
             }
-        ]
+        }
     
     def _execute_magic(self) -> None:
         target = self._args[0]

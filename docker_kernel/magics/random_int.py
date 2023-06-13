@@ -31,7 +31,7 @@ class RandomInt(Magic):
 
     @staticmethod
     def VALID_OPTIONS() -> list[FlagDict]:
-        return []
+        return {}
     
     def _execute_magic(self) -> None:
         stop = int(self._args[0])

@@ -75,27 +75,25 @@ class Magic(ABC):
 
     @staticmethod
     @abstractmethod
-    def VALID_OPTIONS() -> list[FlagDict]:
+    def VALID_OPTIONS() -> dict[str, FlagDict]:
         """ Flags that won't throw an error.
         
-        Define their name, shorthand (if available), default value and description
+        Define their name as key, shorthand (if available), default value and description
 
         Example
         -------
-        [
-            {
-                "name": "path",
+        {
+            "path": {
                 "short": "p",
                 "default": None,
                 "desc": "Path to image"
             },
-            {
-                "name": "workdir",
+            "workdir": {
                 "short": None,
                 "default": None,
                 "desc": "Directory to execute terminal in"
             }
-        ]
+        }
         """
         pass
 
@@ -223,11 +221,11 @@ class Magic(ABC):
         
         # Cursor on flag definition
         if word.startswith("-"):
-            options = magic.VALID_OPTIONS()
+            options: dict[str, FlagDict] = magic.VALID_OPTIONS()
             new_flags = []
-            for o in options:
-                name = f"--{o['name']}"
-                short = f"-{o['short']}" if o['short'] is not None else None
+            for name, details in options.items():
+                name = f"--{name}"
+                short = f"-{details['short']}" if details['short'] is not None else None
                 if name not in segments and short not in segments:
                     new_flags.append(name)
                     if short is not None:
@@ -288,9 +286,9 @@ class Magic(ABC):
         ------
         MagicError
         """
-        options = self.VALID_OPTIONS()
-        flags = [o["name"] for o in options]
-        shorts = [o["short"] for o in options if not None]
+        options: dict[str, FlagDict] = self.VALID_OPTIONS()
+        flags = list(options.keys())
+        shorts = [d["short"] for d in options.values() if d["short"] is not None]
         for flag, value in self._flags.items():
             if flag not in flags:
                 raise MagicError(f"Unknown flag: --{flag}")
