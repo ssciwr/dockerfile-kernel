@@ -2,7 +2,7 @@ from typing import Callable
 
 import random
 
-from docker_kernel.magic import Magic
+from .magic import Magic
 from docker_kernel.utils.conversion import try_convert
 from .helper.errors import MagicError
 from .helper.types import FlagDict

@@ -2,7 +2,7 @@ from typing import Callable
 
 import random
 
-from docker_kernel.magic import Magic
+from .magic import Magic
 from .helper.types import FlagDict
 
 

@@ -1,6 +1,6 @@
 from typing import Callable
 
-from docker_kernel.magic import Magic
+from .magic import Magic
 from .helper.errors import MagicError
 from.helper.types import FlagDict
 

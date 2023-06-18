@@ -2,7 +2,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Callable, Type
 if TYPE_CHECKING:
-    from .kernel import DockerKernel
+    from ..kernel import DockerKernel
 
 from abc import ABC, abstractmethod
 
@@ -10,9 +10,9 @@ import re
 import itertools
 from itertools import zip_longest
 
-from .magics.helper.errors import MagicError
-from .utils.notebook import get_cursor_words, get_cursor_frame, get_first_word
-from .magics.helper.types import FlagDict
+from .helper.errors import MagicError
+from ..utils.notebook import get_cursor_words, get_cursor_frame, get_first_word
+from .helper.types import FlagDict
 
 
 class Magic(ABC):

@@ -3,7 +3,7 @@ import io
 import json
 from ipykernel.kernelbase import Kernel
 
-from .magic import Magic
+from .magics.magic import Magic
 from .utils.notebook import get_cursor_frame
 from.magics.helper.errors import MagicError
 
