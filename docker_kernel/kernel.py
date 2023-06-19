@@ -27,7 +27,6 @@ class DockerKernel(Kernel):
         super().__init__(**kwargs)
         self._api = docker.APIClient(base_url='unix://var/run/docker.sock')
         self._sha1: str | None = None
-        self._tags: dict[str, dict[str, str]] = {}
         self._payload = []
 
     
@@ -156,25 +155,21 @@ class DockerKernel(Kernel):
             "text": text,
             "replace": replace,
         }]
-                    
-    def tag_image(self, image_id: str, name: str, tag: str|None=None):
+
+    def tag_image(self, image: str, name: str, tag: str|None=None):
         """ Tag an image.
         Parameters
         ----------
-        image_id: str
-            Id of image to be saved.
+        image: str
+            Id or name of the image to be tagged.
         name: str
             Image name to be assigned.
         tag: str, optional
             Typically a specific version or variant of an image.
-        
+
         Return
         ------
         None
         """
-        tag = self.default_tag if tag is None else tag
 
-        if name not in self._tags:
-            self._tags[name] = {}
-
-        self._tags[name][tag] = image_id
+        docker.client.from_env().images.get(image).tag(name,tag)
