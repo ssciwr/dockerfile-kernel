@@ -49,13 +49,9 @@ class Tag(Magic):
             # If no colon is provided the default tag is used
             if ":" not in target_image:
                 name = target_image
-                tag = 'latest'
+                tag = None
             else:
                 raise MagicError("Error parsing arguments:\n" + 
                                 f"\t\"{source_image}\" is not valid: invalid reference format")
 
-        if source_image is None:
-            raise MagicError("No image specified")
-
         self._kernel.tag_image(source_image, name, tag=tag)
-        self._kernel.send_response(f"Image {source_image} is tagged with: {name}:{tag}")
