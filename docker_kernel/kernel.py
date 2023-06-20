@@ -28,7 +28,6 @@ class DockerKernel(Kernel):
         self._api = docker.APIClient(base_url='unix://var/run/docker.sock')
         self._sha1: str | None = None
         self._payload = []
-        self._kernel = self
 
     
     @property
@@ -174,5 +173,5 @@ class DockerKernel(Kernel):
         """
 
         self._api.tag(image, name, tag)
-        self._kernel.send_response(f"Image {image} is tagged with: {name}:{tag if tag is not None else 'latest'}")
+        self.send_response(f"Image {image} is tagged with: {name}:{tag if tag is not None else 'latest'}")
 
