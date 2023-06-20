@@ -1,5 +1,7 @@
 from typing import Callable
 
+import docker.client
+
 from .magic import Magic
 from .helper.errors import MagicError
 from.helper.types import FlagDict
@@ -11,7 +13,7 @@ class Tag(Magic):
 
     @staticmethod
     def REQUIRED_ARGS() -> tuple[list[str], int]:
-        return (["target"], 1)
+        return (["source image","target image"], 2)
         
     @staticmethod
     def ARGS_RULES() -> dict[int, list[tuple[Callable[[str], bool], str]]]:
@@ -35,24 +37,21 @@ class Tag(Magic):
         }
     
     def _execute_magic(self) -> None:
-        target = self._args[0]
+        """
+        usage:
+        %tag source_image[:tag] target_image[:tag]
+        """
+        source_image = self._args[0]
+        target_image = self._args[1]
         try:
-            name, tag = target.split(":")
+            name, tag = target_image.split(":")
         except ValueError as e:
             # If no colon is provided the default tag is used
-            if ":" not in target:
-                name = target
+            if ":" not in target_image:
+                name = target_image
                 tag = None
             else:
                 raise MagicError("Error parsing arguments:\n" + 
-                                f"\t\"{target}\" is not valid: invalid reference format")
+                                f"\t\"{source_image}\" is not valid: invalid reference format")
 
-        image_id = self._get_default_flag("image", "i", self._kernel._sha1)
-        if image_id is None:
-            raise MagicError("No image specified")
-
-        self._kernel.tag_image(image_id, name, tag=tag)
-
-        image_str = image_id.removeprefix("sha256:")
-        image_str = f"{image_str[:10]}..." if len(image_str) >= 10 else image_str
-        self._kernel.send_response(f"Image {image_str} tagged")
+        self._kernel.tag_image(source_image, name, tag=tag)
