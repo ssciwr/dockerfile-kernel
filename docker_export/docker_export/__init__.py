@@ -7,7 +7,7 @@ class DockerExporter(TemplateExporter):
     """
     Dockerfile exporter
     """
-    export_from_notebook = "Docker"
+    export_from_notebook = "Dockerfile"
 
     def _file_extension_default(self):
         """
