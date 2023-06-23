@@ -19,6 +19,7 @@ You can then install the kernel with:
 git clone https://github.com/dokempf/dockerfile-kernel.git
 cd dockerfile-kernel
 python -m pip install -e .
+python -m pip install -e ./docker_export
 python docker_kernel/install.py
 pip install shell_extension/dist/shell_extension-0.1.0-py3-none-any.whl
 ```
