@@ -156,12 +156,10 @@ class DockerKernel(Kernel):
             "replace": replace,
         }]
 
-    def tag_image(self, image: str, name: str, tag: str|None=None):
+    def tag_image(self, name: str, tag: str|None=None):
         """ Tag an image.
         Parameters
         ----------
-        image: str
-            Id or name of the image to be tagged.
         name: str
             Image name to be assigned.
         tag: str, optional
@@ -172,6 +170,14 @@ class DockerKernel(Kernel):
         None
         """
 
-        self._api.tag(image, name, tag)
-        self.send_response(f"Image {image} is tagged with: {name}:{tag if tag is not None else 'latest'}")
+        if not self._sha1==None:
+            image = self._sha1.split(":")[1][:12]
+            try:
+                self._api.tag(self._sha1, name, tag)
+                self.send_response(f"Image {image} is tagged with: {name}:{tag if tag is not None else 'latest'}")
+            except Exception as e:
+                raise MagicError(str(e))
+        else:
+            raise MagicError("no valid image, please build the image first")
+
 
