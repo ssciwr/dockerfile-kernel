@@ -13,7 +13,7 @@ class Tag(Magic):
 
     @staticmethod
     def REQUIRED_ARGS() -> tuple[list[str], int]:
-        return (["source image","target image"], 2)
+        return (["target image"], 1)
         
     @staticmethod
     def ARGS_RULES() -> dict[int, list[tuple[Callable[[str], bool], str]]]:
@@ -39,10 +39,10 @@ class Tag(Magic):
     def _execute_magic(self) -> None:
         """
         usage:
-        %tag source_image[:tag] target_image[:tag]
+        %tag target_image[:tag]
         """
-        source_image = self._args[0]
-        target_image = self._args[1]
+
+        target_image = self._args[0]
         try:
             name, tag = target_image.split(":")
         except ValueError as e:
@@ -52,6 +52,6 @@ class Tag(Magic):
                 tag = None
             else:
                 raise MagicError("Error parsing arguments:\n" + 
-                                f"\t\"{source_image}\" is not valid: invalid reference format")
+                                f"\t\"{target_image}\" is not valid: invalid reference format")
 
-        self._kernel.tag_image(source_image, name, tag=tag)
+        self._kernel.tag_image(name, tag=tag)
