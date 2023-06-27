@@ -24,7 +24,7 @@ class Install(Magic):
     def _execute_magic(self) -> list[str] | str:
         package = " ".join(self._args[1:])
         match self._args[0].lower():
-            case "apt-get":
+            case "apt-get" | "apt" :
                 code = f"RUN apt-get update && apt-get install -y**PACKAGES**{package}**PACKAGES**&& rm -rf /var/lib/apt/lists/*"
             case "conda":
                 code = f"RUN conda update -n base -c defaults conda && conda install -y**PACKAGES**{package}**PACKAGES**&& conda clean -afy"
