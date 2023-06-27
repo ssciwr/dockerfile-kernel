@@ -33,7 +33,7 @@ class Install(Magic):
             case "pip":
                 code = f"RUN pip install --upgrade pip && pip install**PACKAGES**{package}**PACKAGES**&& rm -rf /var/lib/apt/lists/*"
             case other:
-                return "Package manager not available (currently available: apt-get)"
+                return "Package manager not available (currently available: apt(-get), conda, npm, pip)"
         self._kernel.set_payload("set_next_input", self._set_layout(code, "\n"), True)
         code = self._kernel.create_build_stage(self._set_layout(code, "\\"))
         self._kernel.build_image(code)
