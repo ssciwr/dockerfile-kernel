@@ -22,25 +22,23 @@ class Install(Magic):
         return {}
     
     def _execute_magic(self) -> list[str] | str:
-        package = " ".join(self._args[1:])
+        packagesPayload = "\n\t".join(self._args[1:])
+        packagesDocker = " ".join(self._args[1:])
         match self._args[0].lower():
             case "apt-get" | "apt" :
-                code = f"RUN apt-get update && apt-get install -y**PACKAGES**{package}**PACKAGES**&& rm -rf /var/lib/apt/lists/*"
+                code = f"RUN apt-get update && apt-get install -y {packagesDocker} && rm -rf /var/lib/apt/lists/*"
+                payload = f"RUN apt-get update && apt-get install -y {packagesPayload} && rm -rf /var/lib/apt/lists/*"
             case "conda":
-                code = f"RUN conda update -n base -c defaults conda && conda install -y**PACKAGES**{package}**PACKAGES**&& conda clean -afy"
+                code = f"RUN conda update -n base -c defaults conda && conda install -y {packagesDocker} && conda clean -afy"
+                payload = f"RUN conda update -n base -c defaults conda && conda install -y {packagesPayload} && conda clean -afy"
             case "npm":
-                code = f"RUN npm install -g npm@latest && npm install**PACKAGES**{package}**PACKAGES**&& npm cache clean --force"
+                code = f"RUN npm install -g npm@latest && npm install {packagesDocker} && npm cache clean --force"
+                payload = f"RUN npm install -g npm@latest && npm install {packagesPayload} && npm cache clean --force"
             case "pip":
-                code = f"RUN pip install --upgrade pip && pip install**PACKAGES**{package}**PACKAGES**&& rm -rf /var/lib/apt/lists/*"
+                code = f"RUN pip install --upgrade pip && pip install {packagesDocker} && rm -rf /var/lib/apt/lists/*"
+                payload = f"RUN pip install --upgrade pip && pip install {packagesPayload} && rm -rf /var/lib/apt/lists/*"
             case other:
                 return "Package manager not available (currently available: apt(-get), conda, npm, pip)"
-        self._kernel.set_payload("set_next_input", self._set_layout(code, "\n"), True)
-        code = self._kernel.create_build_stage(self._set_layout(code, "\\"))
+        self._kernel.set_payload("set_next_input", payload.replace("&&", "&&\n\t") ,True)
+        code = self._kernel.create_build_stage(code)
         self._kernel.build_image(code)
-
-    def _set_layout(self, code: str, newline_character: str) -> str:
-        code = code.split("**PACKAGES**")
-        code[1] = code[1].replace(" ", f"{newline_character}\t")
-        code = " ".join(code)
-        code = code.replace("&&", f"&&{newline_character}")
-        return code
