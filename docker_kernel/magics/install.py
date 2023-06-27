@@ -35,8 +35,8 @@ class Install(Magic):
                 code = f"RUN npm install -g npm@latest && npm install {packagesDocker} && npm cache clean --force"
                 payload = f"RUN npm install -g npm@latest && npm install {packagesPayload} && npm cache clean --force"
             case "pip":
-                code = f"RUN pip install --upgrade pip && pip install {packagesDocker} && rm -rf /var/lib/apt/lists/*"
-                payload = f"RUN pip install --upgrade pip && pip install {packagesPayload} && rm -rf /var/lib/apt/lists/*"
+                code = f"RUN pip install --upgrade pip && pip install {packagesDocker} && rm -Rf /root/.cache/pip"
+                payload = f"RUN pip install --upgrade pip && pip install {packagesPayload} && rm -Rf /root/.cache/pip"
             case other:
                 return "Package manager not available (currently available: apt(-get), conda, npm, pip)"
         self._kernel.set_payload("set_next_input", payload.replace("&&", "&&\n\t") ,True)
