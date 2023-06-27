@@ -29,7 +29,7 @@ class Install(Magic):
                 code = f"RUN apt-get update && apt-get install -y {packagesDocker} && rm -rf /var/lib/apt/lists/*"
                 payload = f"RUN apt-get update && apt-get install -y {packagesPayload} && rm -rf /var/lib/apt/lists/*"
             case "conda":
-                code = f"RUN conda update -n base -c defaults conda && conda install -y {packagesDocker} && conda clean -afy"
+                code = f"RUN conda update -n base -c defaults conda && conda install -y --freeze-installed {packagesDocker} && conda clean -afy"
                 payload = f"RUN conda update -n base -c defaults conda && conda install -y {packagesPayload} && conda clean -afy"
             case "npm":
                 code = f"RUN npm install -g npm@latest && npm install {packagesDocker} && npm cache clean --force"
