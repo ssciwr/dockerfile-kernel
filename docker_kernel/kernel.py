@@ -6,6 +6,7 @@ from ipykernel.kernelbase import Kernel
 from .magics.magic import Magic
 from .utils.notebook import get_cursor_frame
 from.magics.helper.errors import MagicError
+from docker.errors import APIError
 
 # The single source of version truth
 __version__ = "0.0.1"
@@ -62,7 +63,6 @@ class DockerKernel(Kernel):
         try:
             MagicClass, args, flags = Magic.detect_magic(code)
 
-            
             if MagicClass is not None:
                 MagicClass(self, *args, **flags).call_magic()
                 return {'status': 'ok', 'execution_count': self.execution_count, 'payload': self._payload, 'user_expression': {}}
@@ -71,11 +71,14 @@ class DockerKernel(Kernel):
         
         ####################
         # Docker execution
-        code = self.create_build_stage(code)
-        self.build_image(code)
+        try:
+            code = self.create_build_stage(code)
+            self.build_image(code)
 
-        return {'status': 'ok', 'execution_count': self.execution_count, 'payload': self._payload, 'user_expression': {}}
-        
+            return {'status': 'ok', 'execution_count': self.execution_count, 'payload': self._payload, 'user_expression': {}}
+        except APIError as e:
+            self.send_response(str(e))
+
     def do_complete(self, code: str, cursor_pos: int):
         """Provide code completion
         
