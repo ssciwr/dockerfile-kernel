@@ -22,10 +22,12 @@ class Install(Magic):
         return {}
     
     def _execute_magic(self) -> list[str] | str:
+        code = None
+        payload = None
         packagesPayload = "\n\t".join(self._args[1:])
         packagesDocker = " ".join(self._args[1:])
         match self._args[0].lower():
-            case "apt-get" | "apt" :
+            case "apt-get" | "apt":
                 code = f"RUN apt-get update && apt-get install -y {packagesDocker} && rm -rf /var/lib/apt/lists/*"
                 payload = f"RUN apt-get update && apt-get install -y {packagesPayload} && rm -rf /var/lib/apt/lists/*"
             case "conda":
@@ -38,7 +40,11 @@ class Install(Magic):
                 code = f"RUN pip install --upgrade pip && pip install {packagesDocker} && rm -Rf /root/.cache/pip"
                 payload = f"RUN pip install --upgrade pip && pip install {packagesPayload} && rm -Rf /root/.cache/pip"
             case other:
-                return "Package manager not available (currently available: apt(-get), conda, npm, pip)"
-        self._kernel.set_payload("set_next_input", payload.replace("&&", "&&\n\t") ,True)
-        code = self._kernel.create_build_stage(code)
-        self._kernel.build_image(code)
+                self._kernel.send_response("Package manager not available (currently available: apt(-get), conda, npm, pip)")
+        
+        if payload is not None:
+            self._kernel.set_payload("set_next_input", payload.replace("&&", "&&\n\t"), True)
+
+        if code is not None:
+            code = self._kernel.create_build_stage(code)
+            self._kernel.build_image(code)
