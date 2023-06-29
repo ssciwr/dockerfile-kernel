@@ -22,6 +22,7 @@ python -m pip install -e .
 python -m pip install -e ./docker_export
 python docker_kernel/install.py
 pip install shell_extension/dist/shell_extension-0.1.0-py3-none-any.whl
+pip install import_extension/dist/import_extension-0.1.0-py3-none-any.whl
 ```
 
 Then, running `jupyter lab` you should be able to run the prototype.
