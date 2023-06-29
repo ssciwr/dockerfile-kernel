@@ -2,12 +2,16 @@ import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin
 } from '@jupyterlab/application';
-
-import { ICommandPalette, InputDialog, showErrorMessage } from '@jupyterlab/apputils';
-import { IDefaultFileBrowser } from '@jupyterlab/filebrowser';
+import {
+  ICommandPalette,
+  InputDialog,
+  showErrorMessage
+} from '@jupyterlab/apputils';
 import { URLExt } from '@jupyterlab/coreutils';
+import { IDefaultFileBrowser } from '@jupyterlab/filebrowser';
 import { ServerConnection } from '@jupyterlab/services';
 
+import { UUID } from '@lumino/coreutils';
 
 /**
  * Initialization data for the main menu example.
@@ -20,7 +24,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
   activate: (
     app: JupyterFrontEnd,
     palette: ICommandPalette,
-    fileBrowser: IDefaultFileBrowser,
+    fileBrowser: IDefaultFileBrowser
   ) => {
     const { commands } = app;
 
@@ -75,6 +79,14 @@ const plugin: JupyterFrontEndPlugin<void> = {
           return showErrorMessage('Cannot open', reason);
         }
 
+        // Check path for dockerfile
+        if (!path.toLowerCase().endsWith('dockerfile')) {
+          return showErrorMessage(
+            'Not a Dockerfile',
+            "File must have extension 'Dockerfile'"
+          );
+        }
+
         // Read Dockerfile
         const response = await ServerConnection.makeRequest(
           URLExt.join(
@@ -87,11 +99,92 @@ const plugin: JupyterFrontEndPlugin<void> = {
         );
         const file = await response.json();
         const lines: string[] = file.content.split('\n\n');
-        console.log(lines);
 
-        // commands.execute('docmanager:open', {
-        //   path: model.path
-        // });
+        // Create notebook json
+        type Cell = {
+          cell_type: string;
+          execution_count: number | null;
+          id: string;
+          metadata: object;
+          outputs: object[];
+          source: string[];
+        };
+        type MetaData = {
+          kernelspec: {
+            display_name: string;
+            language: string;
+            name: string;
+          };
+          language_info: {
+            file_extension: string;
+            mimetype: string;
+            name: string;
+          };
+        };
+        type Content = {
+          cells: Cell[];
+          metadata: MetaData;
+          nbformat: number;
+          nbformat_minor: number;
+        };
+
+        let content: Content = {
+          cells: [],
+          metadata: {
+            kernelspec: {
+              display_name: 'Dockerfile',
+              language: 'text',
+              name: 'docker'
+            },
+            language_info: {
+              file_extension: '.dockerfile',
+              mimetype: 'text/x-dockerfile-config',
+              name: 'docker'
+            }
+          },
+          nbformat: 4,
+          nbformat_minor: 5
+        };
+
+        const splitLines = (line: string): string[] => {
+          line = line.trim()
+          let lines = line.split('\n');
+          for (var i = 0; i < lines.length-1; i++) {
+            lines[i] += "\n"
+          }
+          return lines
+        };
+
+        for (var line of lines) {
+          let cellType = 'code';
+          if (line.startsWith('# ')) {
+            line = line.substring(2);
+            if (!line.startsWith("%")){
+              cellType = 'markdown';
+            }
+          }
+          content.cells.push({
+            cell_type: cellType,
+            execution_count: null,
+            id: UUID.uuid4(),
+            metadata: {},
+            outputs: [],
+            source: splitLines(line)
+          });
+        }
+
+        // Write and open Jupyter Notebook
+        path += '.ipynb';
+
+        await app.serviceManager.contents.save(path, {
+          type: 'file',
+          format: 'text',
+          content: JSON.stringify(content)
+        });
+
+        commands.execute('docmanager:open', {
+          path: path
+        });
       }
     });
 

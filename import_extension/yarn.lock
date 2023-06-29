@@ -6,9 +6,9 @@ __metadata:
   cacheKey: 8
 
 "@aashutoshrathi/word-wrap@npm:^1.2.3":
-  version: 1.2.5
-  resolution: "@aashutoshrathi/word-wrap@npm:1.2.5"
-  checksum: 06e2e20959a4dbbb06f9d324dc2f877c7fb1b5317237daf08a2ddfcbca6ddcaec67bcf0c9e8e1b7764d5b17b480dc4ef61ecb4f362644d0db5a33192df27680b
+  version: 1.2.6
+  resolution: "@aashutoshrathi/word-wrap@npm:1.2.6"
+  checksum: ada901b9e7c680d190f1d012c84217ce0063d8f5c5a7725bb91ec3c5ed99bb7572680eb2d2938a531ccbaec39a95422fcd8a6b4a13110c7d98dd75402f66a0cd
   languageName: node
   linkType: hard
 
@@ -382,17 +382,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jridgewell/gen-mapping@npm:^0.3.0":
-  version: 0.3.3
-  resolution: "@jridgewell/gen-mapping@npm:0.3.3"
-  dependencies:
-    "@jridgewell/set-array": ^1.0.1
-    "@jridgewell/sourcemap-codec": ^1.4.10
-    "@jridgewell/trace-mapping": ^0.3.9
-  checksum: 4a74944bd31f22354fc01c3da32e83c19e519e3bbadafa114f6da4522ea77dd0c2842607e923a591d60a76699d819a2fbb6f3552e277efdb9b58b081390b60ab
-  languageName: node
-  linkType: hard
-
 "@jridgewell/resolve-uri@npm:3.1.0":
   version: 3.1.0
   resolution: "@jridgewell/resolve-uri@npm:3.1.0"
@@ -400,20 +389,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jridgewell/set-array@npm:^1.0.1":
-  version: 1.1.2
-  resolution: "@jridgewell/set-array@npm:1.1.2"
-  checksum: 69a84d5980385f396ff60a175f7177af0b8da4ddb81824cb7016a9ef914eee9806c72b6b65942003c63f7983d4f39a5c6c27185bbca88eb4690b62075602e28e
-  languageName: node
-  linkType: hard
-
 "@jridgewell/source-map@npm:^0.3.3":
-  version: 0.3.3
-  resolution: "@jridgewell/source-map@npm:0.3.3"
-  dependencies:
-    "@jridgewell/gen-mapping": ^0.3.0
-    "@jridgewell/trace-mapping": ^0.3.9
-  checksum: ae1302146339667da5cd6541260ecbef46ae06819a60f88da8f58b3e64682f787c09359933d050dea5d2173ea7fa40f40dd4d4e7a8d325c5892cccd99aaf8959
+  version: 0.3.4
+  resolution: "@jridgewell/source-map@npm:0.3.4"
+  checksum: 87fae5d8a81bbe5d691f2a415588ee020ec3b858674f675c206f0f7060d820c49dcc755ffd27cc8467e4f50576d7b5b7fc86d34d5e53a879ce7440deef732948
   languageName: node
   linkType: hard
 
@@ -424,14 +403,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jridgewell/sourcemap-codec@npm:^1.4.10":
-  version: 1.4.15
-  resolution: "@jridgewell/sourcemap-codec@npm:1.4.15"
-  checksum: b881c7e503db3fc7f3c1f35a1dd2655a188cc51a3612d76efc8a6eb74728bef5606e6758ee77423e564092b4a518aba569bbb21c9bac5ab7a35b0c6ae7e344c8
-  languageName: node
-  linkType: hard
-
-"@jridgewell/trace-mapping@npm:^0.3.17, @jridgewell/trace-mapping@npm:^0.3.9":
+"@jridgewell/trace-mapping@npm:^0.3.17":
   version: 0.3.18
   resolution: "@jridgewell/trace-mapping@npm:0.3.18"
   dependencies:
@@ -455,7 +427,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jupyterlab/application@npm:^4.0.0, @jupyterlab/application@npm:^4.0.2":
+"@jupyterlab/application@npm:^4.0.0":
   version: 4.0.2
   resolution: "@jupyterlab/application@npm:4.0.2"
   dependencies:
@@ -745,29 +717,6 @@ __metadata:
     "@lumino/widgets": ^2.1.1
     react: ^18.2.0
   checksum: d621722648f8d0e9c17c4df093bf02de0b3c5c1e8cb4b4b46482114700c4ca47dbb35831d2f046b0a28c950c6cd7442cdd791357af87d6e4df5da3b347d463e0
-  languageName: node
-  linkType: hard
-
-"@jupyterlab/filebrowser-extension@npm:^4.0.2":
-  version: 4.0.2
-  resolution: "@jupyterlab/filebrowser-extension@npm:4.0.2"
-  dependencies:
-    "@jupyterlab/application": ^4.0.2
-    "@jupyterlab/apputils": ^4.1.2
-    "@jupyterlab/coreutils": ^6.0.2
-    "@jupyterlab/docmanager": ^4.0.2
-    "@jupyterlab/docregistry": ^4.0.2
-    "@jupyterlab/filebrowser": ^4.0.2
-    "@jupyterlab/services": ^7.0.2
-    "@jupyterlab/settingregistry": ^4.0.2
-    "@jupyterlab/statedb": ^4.0.2
-    "@jupyterlab/statusbar": ^4.0.2
-    "@jupyterlab/translation": ^4.0.2
-    "@jupyterlab/ui-components": ^4.0.2
-    "@lumino/algorithm": ^2.0.0
-    "@lumino/commands": ^2.1.1
-    "@lumino/widgets": ^2.1.1
-  checksum: 4169979d00499143c0aa1ed2200657b65e476dc2f5ac46cc54c1328dc5b29b9e74bde63b2b80bf0eb613b28ebef63e94a1beacb9d4583afe144ce77f98aed6e8
   languageName: node
   linkType: hard
 
@@ -1159,12 +1108,12 @@ __metadata:
   linkType: hard
 
 "@lezer/markdown@npm:^1.0.0, @lezer/markdown@npm:^1.0.2":
-  version: 1.0.3
-  resolution: "@lezer/markdown@npm:1.0.3"
+  version: 1.0.4
+  resolution: "@lezer/markdown@npm:1.0.4"
   dependencies:
     "@lezer/common": ^1.0.0
     "@lezer/highlight": ^1.0.0
-  checksum: 73ccd8d0664849d45912db8148a3b974328e85ba055f9a811e7506c205f112b4d891fca41a849f619456bc6e0f2ce59cd657f88f800ebd5f2f492bc0214374a0
+  checksum: 378571db311d785f8a8af769f7a86806715f12c20a4ad053d1da78b898150eb9a2cce67fb170e775b53e9ef60faf3b6b7c5eaea021cdb3a9c211dedb5707e748
   languageName: node
   linkType: hard
 
@@ -1384,8 +1333,8 @@ __metadata:
   linkType: hard
 
 "@rjsf/core@npm:^5.1.0":
-  version: 5.8.2
-  resolution: "@rjsf/core@npm:5.8.2"
+  version: 5.9.0
+  resolution: "@rjsf/core@npm:5.9.0"
   dependencies:
     lodash: ^4.17.21
     lodash-es: ^4.17.21
@@ -1395,13 +1344,13 @@ __metadata:
   peerDependencies:
     "@rjsf/utils": ^5.8.x
     react: ^16.14.0 || >=17
-  checksum: 05b665f2be100325190da084971749aecb0f1581f80c0f75445e10eb9dffe711fd94dddeb4c8f8723f605c1488d41d66079892b349d56b5b5ae0ff7489a40f87
+  checksum: 52406fcf560af51cb5b45ce95eb826ff1ad4ed1366c70b16b16137455f6b252cef507f76f139524228e12ccf2d49816b3538747431886476574ac2911f29aac1
   languageName: node
   linkType: hard
 
 "@rjsf/utils@npm:^5.1.0":
-  version: 5.8.2
-  resolution: "@rjsf/utils@npm:5.8.2"
+  version: 5.9.0
+  resolution: "@rjsf/utils@npm:5.9.0"
   dependencies:
     json-schema-merge-allof: ^0.8.1
     jsonpointer: ^5.0.1
@@ -1410,7 +1359,7 @@ __metadata:
     react-is: ^18.2.0
   peerDependencies:
     react: ^16.14.0 || >=17
-  checksum: 0733e8d2e50debdd5a6f75b65f8547b2ebb2c4f3ac26c2a866a7f84993b7e911a50d36230eac21830d869d0dfd705c905d08851f7f29bbdcc075e07ba4c7a1f0
+  checksum: f1a1070539b24763b64631bb8d0d16a504fa46f029775a34e57c47e58b913b07e2869b45de6c993745a6320df3b6571f101abc2d07be59054a971e43facae6ea
   languageName: node
   linkType: hard
 
@@ -2480,9 +2429,9 @@ __metadata:
   linkType: hard
 
 "electron-to-chromium@npm:^1.4.431":
-  version: 1.4.442
-  resolution: "electron-to-chromium@npm:1.4.442"
-  checksum: 2905d01dc9b888ec2b3687801d130e868e951052d856727843e1ed22377e7887d472fd67854392c3944ea329865581a634e1e32e9c077dac63e1542fbc9847d2
+  version: 1.4.445
+  resolution: "electron-to-chromium@npm:1.4.445"
+  checksum: 6f42497e5a7d466fd3a4cf716f7c0c0c71b85d5bdc32cb8988ab969ae46aad1bad6fe267d6ab09877aa5769bf8db7b158a18b9bb67dd8a8a98565fc54cd45a3a
   languageName: node
   linkType: hard
 
@@ -3305,9 +3254,7 @@ __metadata:
   dependencies:
     "@jupyterlab/application": ^4.0.0
     "@jupyterlab/builder": ^4.0.0
-    "@jupyterlab/docmanager": ^4.0.2
     "@jupyterlab/filebrowser": ^4.0.2
-    "@jupyterlab/filebrowser-extension": ^4.0.2
     "@jupyterlab/notebook": ^4.0.2
     "@types/json-schema": ^7.0.11
     "@types/react": ^18.0.26
@@ -5756,8 +5703,8 @@ __metadata:
   linkType: hard
 
 "webpack@npm:^5.76.1":
-  version: 5.88.0
-  resolution: "webpack@npm:5.88.0"
+  version: 5.88.1
+  resolution: "webpack@npm:5.88.1"
   dependencies:
     "@types/eslint-scope": ^3.7.3
     "@types/estree": ^1.0.0
@@ -5788,7 +5735,7 @@ __metadata:
       optional: true
   bin:
     webpack: bin/webpack.js
-  checksum: 9fd1568b34ec2e99ba97c8509a15ab2576ec80c396e7015551ec814b24cfc11de173acba3e114dafe95f1a6d460781b09d6201e6a1fb15110e1d01a09f61a283
+  checksum: 726e7e05ab2e7c142609a673dd6aa1a711ed97f349418a2a393d650c5ddad172d191257f60e1e37f6b2a77261571c202aabd5ce9240791a686774f0801cf5ec2
   languageName: node
   linkType: hard
 
