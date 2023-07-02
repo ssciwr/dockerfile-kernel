@@ -1,1 +1,1 @@
-from docker_kernel.kernel import DockerKernel, __version__
+from .kernel import DockerKernel, __version__
