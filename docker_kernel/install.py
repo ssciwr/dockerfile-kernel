@@ -5,7 +5,6 @@ import sys
 from jupyter_client.kernelspec import KernelSpecManager
 from IPython.utils.tempdir import TemporaryDirectory
 
-
 kernel_json = {
     "argv": [sys.executable, "-m", "docker_kernel", "-f", "{connection_file}"],
     "display_name": "Dockerfile",
