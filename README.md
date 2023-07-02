@@ -11,7 +11,7 @@ Currently, the following prerequisites need to be met:
 * Linux only (?)
 * Docker needs to be installed
 * The user needs to be in the `docker` group (see e.g. https://askubuntu.com/a/739861)
-* JupyterLab needs to be installed
+* JupyterLab >= 4.0.0 needs to be installed
 
 You can then install the kernel with:
 
@@ -19,7 +19,10 @@ You can then install the kernel with:
 git clone https://github.com/dokempf/dockerfile-kernel.git
 cd dockerfile-kernel
 python -m pip install -e .
+python -m pip install -e ./docker_export
 python docker_kernel/install.py
+pip install shell_extension/dist/shell_extension-0.1.0-py3-none-any.whl
+pip install import_extension/dist/import_extension-0.1.0-py3-none-any.whl
 ```
 
 Then, running `jupyter lab` you should be able to run the prototype.

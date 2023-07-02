@@ -34,6 +34,12 @@ class DockerKernel(Kernel):
     def default_tag(self):
         return "latest"
       
+    @property
+    def kernel_info(self):
+        info = super().kernel_info
+        info["imageId"] = self._sha1
+        return info
+      
     def do_execute(self, code: str, silent: bool, store_history=True, user_expressions={}, allow_stdin=False):
         """ Execute user code.
         
