@@ -177,7 +177,7 @@ class Magic(ABC):
             if magic.__name__.lower() == name.removeprefix("%").lower():
                 return magic
         
-        # No magic fouind but indicated by leading &
+        # No magic found but indicated by leading &
         raise MagicError(f"No magic named {name.removeprefix('%')}")
     
     @classmethod
