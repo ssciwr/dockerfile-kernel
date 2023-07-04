@@ -68,6 +68,8 @@ class DockerKernel(Kernel):
                 return {'status': 'ok', 'execution_count': self.execution_count, 'payload': self._payload, 'user_expression': {}}
         except MagicError as e:
             self.send_response(str(e))
+            return {'status': 'ok', 'execution_count': self.execution_count, 'payload': self._payload, 'user_expression': {}}
+
         
         ####################
         # Docker execution
