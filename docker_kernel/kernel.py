@@ -85,7 +85,10 @@ class DockerKernel(Kernel):
 
             return {'status': 'ok', 'execution_count': self.execution_count, 'payload': self._payload, 'user_expression': {}}
         except APIError as e:
-            self.send_response(str(e.explanation))
+            if e.explanation is not None:
+                self.send_response(str(e.explanation))
+            else:
+                self.send_response(str(e))
 
     def do_complete(self, code: str, cursor_pos: int):
         """Provide code completion
