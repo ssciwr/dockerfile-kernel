@@ -3,17 +3,20 @@ import io
 import json
 import tarfile
 import os
+import tempfile, shutil
+# from tempfile import TemporaryDirectory
 from ipykernel.kernelbase import Kernel
 
 from .magics.magic import Magic
 from .utils.notebook import get_cursor_frame
 from.magics.helper.errors import MagicError
+from docker.errors import APIError
 
 # The single source of version truth
 __version__ = "0.0.1"
 
 class DockerKernel(Kernel):
-    implementation = "Dockerfile Kernel"
+    implementation = "Dockerfile1 Kernel"
     implementation_version = __version__
     language = 'docker'
     language_version = docker.__version__
@@ -22,7 +25,7 @@ class DockerKernel(Kernel):
         'mimetype': 'text/x-dockerfile-config',
         'file_extension': ".dockerfile"
     }
-    banner = "Dockerfile Kernel"
+    banner = "Dockerfile1 Kernel"
 
     def __init__(self, *args, **kwargs):
         """Initialize the kernel."""
@@ -31,7 +34,6 @@ class DockerKernel(Kernel):
         self._sha1: str | None = None
         self._payload = []
         self._intermedia_images = {}
-        self._work_dir: str | None = None
         self._current_alias: str | None = None
 
     
@@ -76,62 +78,13 @@ class DockerKernel(Kernel):
         
         ####################
         # Docker execution
-        # code = self.create_build_stage(code)
-        # self.build_image(code)
-
-        if code.startswith("COPY"):
-            try:
-                if "--from" in code:
-                    code_seg = code.split(" ")
-                    contain_image = [s for s in code_seg if "--from" in s]
-                    image_alias = ''.join(contain_image).split("=")[1]
-                    base_image_id = self._intermedia_images[image_alias][-1]
-                    base_container = self._api.create_container(base_image_id,'sh')
-                    base_container_id = base_container['Id'][:12]
-                    src = code.split(" ")[2]
-                    dest = code.split(" ")[3]
-                    bits, stat = self._api.get_archive(base_container_id, src)
-                else:
-                    src = code.split(" ")[1]
-                    dest = os.path.join(self._work_dir, code.split(" ")[2])
-                    bits = self.get_tar_file(src)
-                last_image_id = list(self._intermedia_images.values())[-1][-1]
-                container_id = self._api.create_container(last_image_id,'sh', working_dir=self._work_dir)['Id'][:12]
-                result = self._api.put_archive(container_id, dest, bits)
-                new_image = self._api.commit(container_id)
-                new_image_sha = new_image['Id']
-                self._sha1 = new_image_sha
-                new_image_id = new_image['Id'].split("sha256:")[1][:12]
-                self._intermedia_images[self._current_alias].append(new_image_id)
-                self.send_response(f"Successfully built {new_image_id}\n")
-                self.send_response(str(self._intermedia_images))
-            except Exception as e:
-                self.send_response(str(e))
-        else:
-            if code.startswith("FROM"):
-                try:
-                    alias = code.split('as')[1].strip()
-                except:
-                    alias = None
-                self._current_alias = alias
-                self._intermedia_images[alias] = []
-            if code.startswith("WORKDIR"):
-                self._work_dir = code.split(" ")[1]
-                self.send_response(f"Working directory:{self._work_dir}\n")
-            self.send_response(f"code:{code}\n")
+        try:
             code = self.create_build_stage(code)
             self.build_image(code)
-            self.send_response(str(self._intermedia_images))
+            return {'status': 'ok', 'execution_count': self.execution_count, 'payload': self._payload, 'user_expression': {}}
+        except Exception as e:
+            self.send_response(str(e))
 
-        return {'status': 'ok', 'execution_count': self.execution_count, 'payload': self._payload, 'user_expression': {}}
-
-    def get_tar_file(self, src):
-        stream = io.BytesIO()
-        with tarfile.open(fileobj=stream, mode='w|') as tar, open(src, 'rb') as f:
-            info = tar.gettarinfo(fileobj=f)
-            info.name = os.path.basename(src)
-            tar.addfile(info, f)
-        return stream.getvalue()
 
     def do_complete(self, code: str, cursor_pos: int):
         """Provide code completion
@@ -164,23 +117,54 @@ class DockerKernel(Kernel):
         }
 
     def create_build_stage(self, code):
-        """ Add current *_sha1* to the code."""
+        """
+        Add current *_sha1* to the code.
+        Replace base image alias or index with image id.
+        COPY --from=[image alias/index] [src] [dest]
+        -->
+        COPY --from=[image id] [src] [dest]
+        """
+        self.start_a_new_layer(code)
+        code = self.replace_base_image_with_id(code)
         if self._sha1 is not None:
             code = f"FROM {self._sha1}\n{code}"
         return code
+
+    def replace_base_image_with_id(self, code):
+        if '--from=' in code:
+            code_seg = code.split(" ")
+            contain_image = [s for s in code_seg if "--from" in s]
+            image_alias = ''.join(contain_image).split("=")[1]
+            base_image_id = list(self._intermedia_images.values())[int(image_alias)] if image_alias.isdigit() \
+                else self._intermedia_images[image_alias]
+            code = f"{code_seg[0]} --from={base_image_id} {' '.join(code_seg[2:])}"
+        return code
+
+    def start_a_new_layer(self, code):
+        if code.startswith("FROM"):
+            try:
+                alias = code.split('as')[1].strip()
+            except:
+                alias = len(self._intermedia_images)
+            self._current_alias = alias
+            self._intermedia_images[alias] = ''
 
     def build_image(self, code):
         """ Build docker image by passing input to the docker API."""
 
         f = io.BytesIO(code.encode('utf-8'))
         logs = []
-        for logline in self._api.build(fileobj=f, rm=True):
+        current_working_directory = os.getcwd()
+        dockerfile_path = os.path.join(current_working_directory, 'Dockerfile')
+        with open(dockerfile_path, 'w') as df:
+            df.write(code)
+        for logline in self._api.build(path=current_working_directory, dockerfile=dockerfile_path, rm=True):
             loginfo = json.loads(logline.decode())
 
             if 'aux' in loginfo:
                 self._sha1 = loginfo['aux']['ID']
                 image_id = self._sha1.split(':')[1][:12]
-                self._intermedia_images[self._current_alias].append(image_id)
+                self._intermedia_images[self._current_alias]=image_id
 
             if 'stream' in loginfo:
                 log = loginfo['stream']
