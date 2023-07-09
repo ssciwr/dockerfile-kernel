@@ -1,10 +1,7 @@
 import docker
 import io
 import json
-import tarfile
 import os
-import tempfile, shutil
-# from tempfile import TemporaryDirectory
 from ipykernel.kernelbase import Kernel
 
 from .magics.magic import Magic
@@ -16,7 +13,7 @@ from docker.errors import APIError
 __version__ = "0.0.1"
 
 class DockerKernel(Kernel):
-    implementation = "Dockerfile1 Kernel"
+    implementation = "Dockerfile Kernel"
     implementation_version = __version__
     language = 'docker'
     language_version = docker.__version__
@@ -25,7 +22,7 @@ class DockerKernel(Kernel):
         'mimetype': 'text/x-dockerfile-config',
         'file_extension': ".dockerfile"
     }
-    banner = "Dockerfile1 Kernel"
+    banner = "Dockerfile Kernel"
 
     def __init__(self, *args, **kwargs):
         """Initialize the kernel."""
@@ -82,8 +79,11 @@ class DockerKernel(Kernel):
             code = self.create_build_stage(code)
             self.build_image(code)
             return {'status': 'ok', 'execution_count': self.execution_count, 'payload': self._payload, 'user_expression': {}}
-        except Exception as e:
-            self.send_response(str(e))
+        except APIError as e:
+            if e.explanation is not None:
+                self.send_response(str(e.explanation))
+            else:
+                self.send_response(str(e))
 
 
     def do_complete(self, code: str, cursor_pos: int):
