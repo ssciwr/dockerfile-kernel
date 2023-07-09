@@ -4,7 +4,7 @@ import json
 from ipykernel.kernelbase import Kernel
 
 from .magics.magic import Magic
-from .utils.notebook import get_cursor_frame
+from .utils.notebook import get_cursor_frame, get_cursor_word
 from.magics.helper.errors import MagicError
 from docker.errors import APIError
 
@@ -22,6 +22,10 @@ class DockerKernel(Kernel):
         'file_extension': ".dockerfile"
     }
     banner = "Dockerfile Kernel"
+
+    #source of keywords: https://docs.docker.com/engine/reference/builder/
+    keywords = ["ARG","ADD","CMD","ENV","COPY","ENTRYPOINT","FROM","EXPOSE","HEALTHCHECK",
+                "LABEL","ONBUILD","RUN","SHELL","STOPSIGNAL","USER","VOLUME","WORKDIR"]
 
     def __init__(self, *args, **kwargs):
         """Initialize the kernel."""
@@ -111,6 +115,16 @@ class DockerKernel(Kernel):
         matches.sort()
 
         cursor_start, cursor_end = get_cursor_frame(code, cursor_pos)
+
+        #Docker command completion
+        word, _ = get_cursor_word(code, cursor_pos)
+        start, _ = get_cursor_frame(code, cursor_pos)
+
+        # Word left of cursor
+        partial_word = word[:cursor_pos - start]
+
+        # Cursor on magic name
+        matches.extend(k for k in self.keywords if k.startswith(partial_word.upper()))
         
         return {
             "status": "ok",
