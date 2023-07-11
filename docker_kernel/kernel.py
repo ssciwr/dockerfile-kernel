@@ -3,9 +3,12 @@ import io
 import json
 from ipykernel.kernelbase import Kernel
 
+from ipylab import JupyterFrontEnd
+
 from .magics.magic import Magic
 from .utils.notebook import get_cursor_frame
-from.magics.helper.errors import MagicError
+from .magics.helper.errors import MagicError
+from .frontend.interaction import FrontendInteraction
 from docker.errors import APIError
 
 # The single source of version truth
@@ -29,6 +32,7 @@ class DockerKernel(Kernel):
         self._api = docker.APIClient(base_url='unix://var/run/docker.sock')
         self._sha1: str | None = None
         self._payload = []
+        self._frontend = None
 
     
     @property
@@ -76,6 +80,12 @@ class DockerKernel(Kernel):
             self.send_response(str(e))
             return {'status': 'ok', 'execution_count': self.execution_count, 'payload': self._payload, 'user_expression': {}}
 
+        ####################
+        # Frontend execution
+        self._frontend = self._frontend if self._frontend is not None else FrontendInteraction(JupyterFrontEnd())
+        frontend_interacted = self._frontend.handle_code(code)
+        if frontend_interacted:
+            return
         
         ####################
         # Docker execution
