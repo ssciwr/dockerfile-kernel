@@ -1,12 +1,10 @@
 import uuid
 import json
-import os
 
 def convertDockerfileToNotebook(path_to_dockerfile):
     with open(path_to_dockerfile, "r", newline="\n") as dockerfile:
         lines = dockerfile.readlines()
-        lines = [line.rstrip("\n") for line in lines]
-        lines = "\n".join(lines).split("\n\n")
+        lines = "".join(lines).split("\n\n")
         content = {
           "cells": [],
           "metadata": {
@@ -39,9 +37,5 @@ def convertDockerfileToNotebook(path_to_dockerfile):
             "outputs": [],
             "source": line
         })
-    
-    notebook_string = json.dumps(content)
-    with open(f"{os.path.dirname(path_to_dockerfile)}/Test.ipynb", "w") as dockerfile:
-        dockerfile.write(notebook_string)
       
-    return notebook_string
+    return json.dumps(content)
