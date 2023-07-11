@@ -3,12 +3,7 @@ import {
   JupyterFrontEndPlugin
 } from '@jupyterlab/application';
 
-import {
-  ICommandPalette,
-  MainAreaWidget,
-  IFrame,
-  InputDialog
-} from '@jupyterlab/apputils';
+import { ICommandPalette, MainAreaWidget, IFrame } from '@jupyterlab/apputils';
 
 /**
  * Initialization data for the helper_extension extension.
@@ -34,26 +29,19 @@ const plugin: JupyterFrontEndPlugin<void> = {
     const command: string = 'helper:open';
     app.commands.addCommand(command, {
       label: 'Open Docker Helper',
-      execute: async () => {
+      execute: async ({ hook }) => {
         // Regenerate the widget if disposed
         if (widget.isDisposed) {
           widget = newWidget();
         }
-        let hook =
-          (
-            await InputDialog.getText({
-              label: 'Command',
-              placeholder: 'Command...',
-              title: 'Open Docker Help',
-              okLabel: 'Open'
-            })
-          ).value ?? undefined;
-        hook = hook ? '/#' + hook : ''
-        widget.content.url = 'https://docs.docker.com/engine/reference/builder' + hook.toLowerCase();
+        hook = hook ? '/#' + hook : '';
+        widget.content.url =
+          'https://docs.docker.com/engine/reference/builder' +
+          hook.toLowerCase();
 
         if (!widget.isAttached) {
           // Attach the widget to the main work area if it's not there
-          app.shell.add(widget, 'main');
+          app.shell.add(widget, 'main', { mode: 'split-right' });
         }
         // Activate the widget
         app.shell.activateById(widget.id);
