@@ -13,8 +13,8 @@ from jupyter_client import KernelManager
 from utils import convertDockerfileToNotebook
 
 
-def generateKernelId(dockerfile_path):
-    notebook_string = convertDockerfileToNotebook(dockerfile_path)
+def generateKernelId(test_directory, dockerfile_name):
+    notebook_string = convertDockerfileToNotebook(os.path.join(test_directory, dockerfile_name))
 
     with StringIO(notebook_string) as f:
         notebook = read(f, as_version=4)
@@ -31,12 +31,10 @@ def generateKernelId(dockerfile_path):
 
     return image_id
 
-def generateDockerId(dockerfile_path):
+def generateDockerId(test_directory, dockerfile_name):
     docker_api = docker.APIClient(base_url='unix://var/run/docker.sock')
-    with open(dockerfile_path, "rb") as dockerfile:
-        for logline in docker_api.build(fileobj=dockerfile):
+    for logline in docker_api.build(path=test_directory, dockerfile=dockerfile_name, rm=True):
             loginfo = json.loads(logline.decode())
-
             if 'aux' in loginfo:
                 docker_id = loginfo['aux']['ID']
     return docker_id
@@ -44,19 +42,17 @@ def generateDockerId(dockerfile_path):
 
 class TestImageIds(unittest.TestCase):
     def test_image_ids(self):
-        test_file_paths = []
+        DEFAULT_TEST_PATH = os.path.join(os.path.dirname(__file__), "test_envs")
         try:
-            print(os.path.dirname(__file__))
             test_path = sys.argv[1]
         except IndexError:
-            test_path = os.path.join(os.path.dirname(__file__), "dockerfiles")
+            test_path = DEFAULT_TEST_PATH
         finally:
-            for file in os.listdir(test_path):
-                if file.lower().endswith("dockerfile"):
-                    test_file_paths.append(os.path.join(test_path, file))
-        for file_path in test_file_paths:
-            kernel_id = generateKernelId(file_path)
-            docker_id = generateDockerId(file_path)
+            test_directories = [os.path.join(test_path, d) for d in next(os.walk(test_path))[1]]
+        for test_directory in test_directories:
+            dockerfile_name = next(f for f in os.listdir(test_directory) if os.path.isfile(os.path.join(test_directory, f)) and f.lower().endswith("dockerfile"))
+            kernel_id = generateKernelId(test_directory, dockerfile_name)
+            docker_id = generateDockerId(test_directory, dockerfile_name)
             self.assertEqual(kernel_id, docker_id, "Kernel Id and Docker Id should be the same")
 
 if __name__ == "__main__":
