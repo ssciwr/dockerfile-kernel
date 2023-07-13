@@ -118,12 +118,7 @@ class DockerKernel(Kernel):
 
         #Docker command completion
         word, _ = get_cursor_word(code, cursor_pos)
-        start, _ = get_cursor_frame(code, cursor_pos)
-
-        # Word left of cursor
-        partial_word = word[:cursor_pos - start]
-
-        # Cursor on magic name
+        partial_word = word[:cursor_pos - cursor_start]
         matches.extend(k for k in self.keywords if k.startswith(partial_word.upper()))
         
         return {
