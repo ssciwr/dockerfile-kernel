@@ -4,7 +4,7 @@ import json
 from ipykernel.kernelbase import Kernel
 
 from .magics.magic import Magic
-from .utils.notebook import get_cursor_frame, get_cursor_word
+from .utils.notebook import get_cursor_frame, get_cursor_word, get_line_start
 from.magics.helper.errors import MagicError
 from docker.errors import APIError
 
@@ -111,16 +111,18 @@ class DockerKernel(Kernel):
         See [here](https://jupyter-client.readthedocs.io/en/stable/messaging.html#completion) for reference
         """
         matches = []
-        matches.extend(Magic.do_complete(code, cursor_pos))
-        matches.sort()
-
+        line_start = get_line_start(code, cursor_pos)
         cursor_start, cursor_end = get_cursor_frame(code, cursor_pos)
-
+        
+        if line_start and line_start.startswith("%"):
+            matches.extend(Magic.do_complete(code, cursor_pos))
+        
         #Docker command completion
         word, _ = get_cursor_word(code, cursor_pos)
         partial_word = word[:cursor_pos - cursor_start]
         matches.extend(k for k in self.keywords if k.startswith(partial_word.upper()))
-        
+    
+        #matches.sort()
         return {
             "status": "ok",
             "matches": matches,
