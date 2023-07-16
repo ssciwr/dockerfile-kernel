@@ -1,15 +1,16 @@
+from docker.errors import APIError
 import docker
 import io
 import json
 from ipykernel.kernelbase import Kernel
 
 from .magics.magic import Magic
-from .utils.notebook import get_cursor_frame, get_cursor_word, get_line_start
-from.magics.helper.errors import MagicError
-from docker.errors import APIError
+from .utils.notebook import get_cursor_frame, get_cursor_words, get_line_start
+from .magics.helper.errors import MagicError
 
 # The single source of version truth
 __version__ = "0.0.1"
+
 
 class DockerKernel(Kernel):
     implementation = "Dockerfile Kernel"
@@ -23,9 +24,9 @@ class DockerKernel(Kernel):
     }
     banner = "Dockerfile Kernel"
 
-    #source of keywords: https://docs.docker.com/engine/reference/builder/
-    keywords = ["ARG","ADD","CMD","ENV","COPY","ENTRYPOINT","FROM","EXPOSE","HEALTHCHECK",
-                "LABEL","ONBUILD","RUN","SHELL","STOPSIGNAL","USER","VOLUME","WORKDIR"]
+    # source of keywords: https://docs.docker.com/engine/reference/builder/
+    keywords = {"ARG": [], "ADD": ["--chown=", "--chmod=", "--checksum=", "--keep-git-dir=true", "--link"], "CMD": [], "ENV": [], "COPY": ["--chown=", "--chmod=", "--from=", "--link"], "ENTRYPOINT": [], "FROM": ["AS ", "--platform="], "EXPOSE": [], "HEALTHCHECK": ["--intervall=", "--timeout=", "--start-period=", "--start-interval=", "--retries="],
+                "LABEL": [], "ONBUILD": [], "RUN": ["--mount=", "--network", "--privileged", "--security", "--mount=type=bind", "--mount=type=cache", "--mount=type=tmpfs", "--mount=type=secret", "--mount=type=ssh", "--network=default", "--network=none", "--network=host", "--security=insecure", "--security=sandbox"], "SHELL": [], "STOPSIGNAL": [], "USER": [], "VOLUME": [], "WORKDIR": []}
 
     def __init__(self, *args, **kwargs):
         """Initialize the kernel."""
@@ -34,20 +35,19 @@ class DockerKernel(Kernel):
         self._sha1: str | None = None
         self._payload = []
 
-    
     @property
     def default_tag(self):
         return "latest"
-      
+
     @property
     def kernel_info(self):
         info = super().kernel_info
         info["imageId"] = self._sha1
         return info
-      
+
     def do_execute(self, code: str, silent: bool, store_history=True, user_expressions={}, allow_stdin=False):
         """ Execute user code.
-        
+
         Parameters
         ----------
         code: str
@@ -67,7 +67,7 @@ class DockerKernel(Kernel):
             Specified [here](https://jupyter-client.readthedocs.io/en/stable/messaging.html#execution-results)
         """
         self._payload = []
-        
+
         ####################
         # Magic execution
         try:
@@ -80,7 +80,6 @@ class DockerKernel(Kernel):
             self.send_response(str(e))
             return {'status': 'ok', 'execution_count': self.execution_count, 'payload': self._payload, 'user_expression': {}}
 
-        
         ####################
         # Docker execution
         try:
@@ -96,7 +95,7 @@ class DockerKernel(Kernel):
 
     def do_complete(self, code: str, cursor_pos: int):
         """Provide code completion
-        
+
         Parameters
         ----------
         code: str
@@ -113,16 +112,23 @@ class DockerKernel(Kernel):
         matches = []
         line_start = get_line_start(code, cursor_pos)
         cursor_start, cursor_end = get_cursor_frame(code, cursor_pos)
-        
+
         if line_start and line_start.startswith("%"):
             matches.extend(Magic.do_complete(code, cursor_pos))
-        
-        #Docker command completion
-        word, _ = get_cursor_word(code, cursor_pos)
+
+        # Docker command completion
+        word, left_word = get_cursor_words(code, cursor_pos)
         partial_word = word[:cursor_pos - cursor_start]
-        matches.extend(k for k in self.keywords if k.startswith(partial_word.upper()))
-    
-        #matches.sort()
+
+        if line_start not in self.keywords:
+            matches.extend(k for k in self.keywords if k.startswith(
+                partial_word.upper()))
+        else:
+            matches.extend(flag for flag in self.keywords[line_start] if flag.startswith(
+                partial_word.lower()
+            ))
+
+        matches.sort()
         return {
             "status": "ok",
             "matches": matches,
@@ -140,13 +146,13 @@ class DockerKernel(Kernel):
     def build_image(self, code):
         """ Build docker image by passing input to the docker API."""
         f = io.BytesIO(code.encode('utf-8'))
-        logs = [] 
+        logs = []
         for logline in self._api.build(fileobj=f, rm=True):
             loginfo = json.loads(logline.decode())
 
             if 'aux' in loginfo:
                 self._sha1 = loginfo['aux']['ID']
-        
+
             if 'stream' in loginfo:
                 log = loginfo['stream']
                 if log.strip() != "":
@@ -155,10 +161,10 @@ class DockerKernel(Kernel):
     def send_response(self, content_text, stream=None, msg_or_type="stream", content_name="stdout"):
         stream = self.iopub_socket if stream is None else stream
         return super().send_response(stream, msg_or_type, {"name": content_name, "text": content_text})
-    
+
     def set_payload(self, source: str, text: str, replace: bool):
         """ Trigger frontend action via payloads. 
-        
+
         Parameters
         ----------
         source: str
@@ -167,7 +173,7 @@ class DockerKernel(Kernel):
             text contents of the cell to create
         replace: bool
             If true, replace the current cell in document UIs instead of inserting a cell. Ignored in console UIs.
-        
+
         Returns
         -------
         NONE
@@ -175,13 +181,13 @@ class DockerKernel(Kernel):
         See [here](https://jupyter-client.readthedocs.io/en/stable/messaging.html#payloads-deprecated) for reference
 
         """
-        self._payload =[{
+        self._payload = [{
             "source": source,
             "text": text,
             "replace": replace,
         }]
 
-    def tag_image(self, name: str, tag: str|None=None):
+    def tag_image(self, name: str, tag: str | None = None):
         """ Tag an image.
         Parameters
         ----------
@@ -195,14 +201,13 @@ class DockerKernel(Kernel):
         None
         """
 
-        if not self._sha1==None:
+        if not self._sha1 == None:
             image = self._sha1.split(":")[1][:12]
             try:
                 self._api.tag(self._sha1, name, tag)
-                self.send_response(f"Image {image} is tagged with: {name}:{tag if tag is not None else 'latest'}")
+                self.send_response(
+                    f"Image {image} is tagged with: {name}:{tag if tag is not None else 'latest'}")
             except Exception as e:
                 raise MagicError(str(e))
         else:
             raise MagicError("no valid image, please build the image first")
-
-
