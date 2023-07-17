@@ -49,7 +49,6 @@ jobs:
 
     - name: Install Python package
       run: |
-        cd ./dockerfile-kernel
         python -m pip install -e .
         python -m pip install -e ./docker_export
 
