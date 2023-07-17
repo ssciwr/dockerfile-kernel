@@ -33,19 +33,21 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
-    #install Docker
+    - name: setup Docker
+      uses: docker-practice/actions-setup-docker@master
+      with:
+        docker_version: "20.10"
+        docker_channel: "stable"
 
-    #install JupyterLab
+    - name: Install jupyterlab
+      run: |
+        python -m pip install jupyterlab
 
     - name: Install Python package
       run: |
-        python -m pip install .[test]
-    #figure out, if this installs the package or if we have to create a PyPi package first
-    #make test a python package
-
-    - name: Install docker_export
-      run: |
-        python -m pip install ./docker_export
+        cd dockerfile-kernel
+        python -m pip install -e .
+        python -m pip install -e ./docker_export
 
     - name: Install the kernel
       run: |
