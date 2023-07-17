@@ -1,0 +1,14 @@
+# Changes here will be overwritten by Copier; NEVER EDIT MANUALLY
+_commit: v4.0.8
+_src_path: https://github.com/jupyterlab/extension-template
+author_email: ''
+author_name: Marvin Weitz
+has_binder: false
+has_settings: false
+kind: frontend
+labextension_name: helper_extension
+project_short_description: Show Docker help in its own tab.
+python_name: helper_extension
+repository: ''
+test: false
+
