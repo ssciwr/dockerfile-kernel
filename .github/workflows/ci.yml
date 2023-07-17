@@ -44,6 +44,9 @@ jobs:
       run: |
         python -m pip install jupyterlab
 
+    - name: Change to repository folder
+      run: cd $GITHUB_WORKSPACE
+
     - name: Install Python package
       run: |
         cd ./dockerfile-kernel
