@@ -27,6 +27,7 @@ jobs:
       uses: actions/checkout@v3
       with:
         # setuptools_scm requires a non-shallow clone of the repository
+        ref: test/dockerfile-hash
         fetch-depth: 0
 
     - name: Set up Python ${{ matrix.python-version }}
@@ -34,15 +35,15 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
-    - name: setup Docker
+    - name: Set up Docker
       uses: docker-practice/actions-setup-docker@master
       with:
         docker_version: "20.10"
         docker_channel: "stable"
+    #tbd: Is the user in the docker group?
 
     - name: Install jupyterlab
-      run: |
-        python -m pip install jupyterlab
+      run: python -m pip install jupyterlab
 
     - name: Change to repository folder
       run: cd $GITHUB_WORKSPACE
@@ -53,17 +54,13 @@ jobs:
         python -m pip install -e ./docker_export
 
     - name: Install the kernel
-      run: |
-        python docker_kernel/install.py
+      run: python docker_kernel/install.py
               
     - name: Install shell_extension
-      run: |
-        pip install shell_extension/dist/shell_extension-0.1.0-py3-none-any.whl
+      run: pip install shell_extension/dist/shell_extension-0.1.0-py3-none-any.whl
 
     - name: Install import_extension
-      run: |
-        pip install import_extension/dist/import_extension-0.1.0-py3-none-any.whl
+      run: pip install import_extension/dist/import_extension-0.1.0-py3-none-any.whl
 
     - name: Run Python tests
-      run: |
-        python -m test/image_ids.py
+      run: python -m test/image_ids.py
