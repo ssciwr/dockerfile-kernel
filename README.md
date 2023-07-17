@@ -27,6 +27,10 @@ pip install import_extension/dist/import_extension-0.1.0-py3-none-any.whl
 
 Then, running `jupyter lab` you should be able to run the prototype.
 
+## Testing
+You can execute tests by installing pytest via `pip install -U pytest`.
+Run `pytest` to execute the tests.
+
 ## Links
 
 * https://jupyter-client.readthedocs.io/en/stable/wrapperkernels.html

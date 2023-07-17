@@ -1,4 +1,3 @@
-import unittest
 import sys
 
 import docker
@@ -40,20 +39,16 @@ def generateDockerId(test_directory, dockerfile_name):
     return docker_id
 
 
-class TestImageIds(unittest.TestCase):
-    def test_image_ids(self):
-        DEFAULT_TEST_PATH = os.path.join(os.path.dirname(__file__), "test_envs")
-        try:
-            test_path = sys.argv[1]
-        except IndexError:
-            test_path = DEFAULT_TEST_PATH
-        finally:
-            test_directories = [os.path.join(test_path, d) for d in next(os.walk(test_path))[1]]
-        for test_directory in test_directories:
-            dockerfile_name = next(f for f in os.listdir(test_directory) if os.path.isfile(os.path.join(test_directory, f)) and f.lower().endswith("dockerfile"))
-            kernel_id = generateKernelId(test_directory, dockerfile_name)
-            docker_id = generateDockerId(test_directory, dockerfile_name)
-            self.assertEqual(kernel_id, docker_id, "Kernel Id and Docker Id should be the same")
-
-if __name__ == "__main__":
-    unittest.main(argv=['filepath'])
+def test_image_ids():
+    DEFAULT_TEST_PATH = os.path.join(os.path.dirname(__file__), "test_envs")
+    try:
+        test_path = sys.argv[1]
+    except IndexError:
+        test_path = DEFAULT_TEST_PATH
+    finally:
+        test_directories = [os.path.join(test_path, d) for d in next(os.walk(test_path))[1]]
+    for test_directory in test_directories:
+        dockerfile_name = next(f for f in os.listdir(test_directory) if os.path.isfile(os.path.join(test_directory, f)) and f.lower().endswith("dockerfile"))
+        kernel_id = generateKernelId(test_directory, dockerfile_name)
+        docker_id = generateDockerId(test_directory, dockerfile_name)
+        assert kernel_id == docker_id, "Kernel Id and Docker Id should be the same"
