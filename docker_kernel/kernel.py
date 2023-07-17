@@ -85,7 +85,7 @@ class DockerKernel(Kernel):
         self._frontend = self._frontend if self._frontend is not None else FrontendInteraction(JupyterFrontEnd())
         frontend_interacted = self._frontend.handle_code(code)
         if frontend_interacted:
-            return
+            return {'status': 'abort'}
         
         ####################
         # Docker execution
