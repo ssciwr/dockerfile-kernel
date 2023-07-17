@@ -22,18 +22,21 @@ class Install(Magic):
         return {}
     
     def _execute_magic(self) -> list[str] | str:
-        package = " ".join(self._args[1:])
+        code = None
+        packages = " {newLine}".join(self._args[1:])
         match self._args[0].lower():
-            case "apt-get":
-                code = f"RUN apt-get update && apt-get install -y {package} && rm -rf /var/lib/apt/lists/*"
+            case "apt-get" | "apt":
+                code = "RUN apt-get update {newLine}apt-get install -y " + f"{packages}" + " {newLine}rm -rf /var/lib/apt/lists/*"
             case "conda":
-                code = f"RUN conda update -n base -c defaults conda && conda install -y {package} && conda clean -afy"
+                code = "RUN conda install -y --freeze-installed " + f"{packages}" + " {newLine}conda clean -afy"
             case "npm":
-                code = f"RUN npm install -g npm@latest && npm install {package} && npm cache clean --force"
+                code = "RUN npm install " + f"{packages}" + " {newLine}npm cache clean --force"
             case "pip":
-                code = f"RUN pip install --upgrade pip && pip install {package} && rm -rf /var/lib/apt/lists/*"
+                code = "RUN pip install --upgrade pip {newLine}pip install " + f"{packages}" + " {newLine}rm -Rf /root/.cache/pip"
             case other:
-                return "Package manager not available (currently available: apt-get)"
-        self._kernel.set_payload("set_next_input", code, True)
-        code = self._kernel.create_build_stage(code)
-        self._kernel.build_image(code)
+                self._kernel.send_response("Package manager not available (currently available: apt(-get), conda, npm, pip)")
+        
+        if code is not None:
+            self._kernel.set_payload("set_next_input", code.format(newLine = "&&\n\t "), True)
+            code = self._kernel.create_build_stage(code.format(newLine = "&& "))
+            self._kernel.build_image(code)
