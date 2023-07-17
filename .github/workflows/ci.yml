@@ -63,4 +63,4 @@ jobs:
       run: pip install import_extension/dist/import_extension-0.1.0-py3-none-any.whl
 
     - name: Run Python tests
-      run: python -m test/image_ids.py
+      run: python test/image_ids.py
