@@ -112,15 +112,14 @@ class DockerKernel(Kernel):
         matches = []
         line_start = get_line_start(code, cursor_pos)
         cursor_start, cursor_end = get_cursor_frame(code, cursor_pos)
+        word, _ = get_cursor_words(code, cursor_pos)
+        partial_word = word[:cursor_pos - cursor_start]
 
         # Magic command completion
         if line_start and line_start.startswith("%"):
             matches.extend(Magic.do_complete(code, cursor_pos))
 
         # Docker command completion
-        word, left_word = get_cursor_words(code, cursor_pos)
-        partial_word = word[:cursor_pos - cursor_start]
-
         if line_start not in self.keywords:
             matches.extend(k for k in self.keywords if k.startswith(
                 partial_word.upper()))
