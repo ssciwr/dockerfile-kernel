@@ -226,13 +226,15 @@ class DockerKernel(Kernel):
                 loginfo = json.loads(logline.decode())
                 if 'error' in loginfo:
                     self.send_response(f'error:{loginfo["error"]}\n')
+                    return
                 if 'aux' in loginfo:
                     self._sha1 = loginfo['aux']['ID']
-                    self._save_build_stage(code, loginfo['aux']['ID'])
                 if 'stream' in loginfo:
                     log = loginfo['stream']
                     if log.strip() != "":
                         self.send_response(log)
+
+            self._save_build_stage(code, self._sha1)
 
     def _save_build_stage(self, code, image_id):
         if not code.lower().strip().startswith('from'):
