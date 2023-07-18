@@ -193,7 +193,7 @@ class DockerKernel(Kernel):
         """ Build docker image by passing input to the docker API."""
         with tempfile.TemporaryDirectory() as tmp_dir:
             try:
-                self.copy_cwd_to_tmp_dir(tmp_dir)
+                shutil.copytree(os.getcwd(), tmp_dir)
                 dockerfile_path = self.create_dockerfile(code, tmp_dir)
             except Exception as e:
                 self.send_response(str(e))
@@ -211,11 +211,6 @@ class DockerKernel(Kernel):
                     if log.strip() != "":
                         self.send_response(log)
             self.save_current_stage()
-
-    def copy_cwd_to_tmp_dir(self, tmp_dir):
-        if os.path.exists(tmp_dir):
-            shutil.rmtree(tmp_dir)
-            shutil.copytree(os.getcwd(), tmp_dir)
 
     def create_dockerfile(self, code, tmp_dir):
         dockerfile_path = os.path.join(tmp_dir, 'Dockerfile')
