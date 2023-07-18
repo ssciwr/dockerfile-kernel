@@ -65,7 +65,5 @@ jobs:
     - name: Install import_extension
       run: pip install import_extension/dist/import_extension-0.1.0-py3-none-any.whl
 
-    - name: Run Python tests
-      run: |
-        cd test
-        pytest
+    - name: Run tests
+      run: pytest
