@@ -35,8 +35,8 @@ class DockerKernel(Kernel):
         self._api = docker.APIClient(base_url='unix://var/run/docker.sock')
         self._sha1: str | None = None
         self._payload = []
-        self._index_to_image_id = {}
-        self._alias_to_index = {}
+        self._build_stage_indices = {}
+        self._build_stage_aliases = {}
         self._current_alias: str | int | None = None
         self._frontend = None
       
@@ -157,9 +157,9 @@ class DockerKernel(Kernel):
         try:
             image_alias = image_segment.split("=")[1]
             if image_alias.isdigit():
-                base_image_id = self._index_to_image_id[int(image_alias)]
+                base_image_id = self._build_stage_indices[int(image_alias)]
             else:
-                base_image_id = self._index_to_image_id[self._alias_to_index[image_alias]]
+                base_image_id = self._build_stage_indices[self._build_stage_aliases[image_alias]]
         except IndexError:
             base_image_id = ""
         except KeyError:
@@ -177,15 +177,15 @@ class DockerKernel(Kernel):
         if type(self._current_alias) is int:
             index = self._current_alias + 1
         elif type(self._current_alias) is str:
-            index = self._alias_to_index[self._current_alias] + 1
+            index = self._build_stage_aliases[self._current_alias] + 1
         else:
             index = 0
         if len(remain) > 1 and remain[1] == 'as':
             alias = remain[2]
-            self._alias_to_index[alias] = index
+            self._build_stage_aliases[alias] = index
         else:
             alias = index
-        self._index_to_image_id[index] = None # The image that is currently in the building process doesn't have an id yet
+        self._build_stage_indices[index] = None # The image that is currently in the building process doesn't have an id yet
         self._current_alias = alias
 
     def build_image(self, code):
@@ -220,18 +220,18 @@ class DockerKernel(Kernel):
     def save_current_stage(self):
         image_id = self._sha1.split(':')[1][:12]
         if type(self._current_alias) is int:
-            self._index_to_image_id[self._current_alias] = image_id
+            self._build_stage_indices[self._current_alias] = image_id
         else:
-            self._index_to_image_id[self._alias_to_index[self._current_alias]] = image_id
+            self._build_stage_indices[self._build_stage_aliases[self._current_alias]] = image_id
 
     def delete_current_stage(self):
         if type(self._current_alias) is int:
-            del self._index_to_image_id[self._current_alias]
+            del self._build_stage_indices[self._current_alias]
         else:
-            del self._index_to_image_id[self._alias_to_index[self._current_alias]]
-            del self._alias_to_index[self._current_alias]
-        last_stage_index = list(self._index_to_image_id.keys())[-1]
-        last_stage_alias = ''.join({i for i in self._alias_to_index if self._alias_to_index[i] == last_stage_index})
+            del self._build_stage_indices[self._build_stage_aliases[self._current_alias]]
+            del self._build_stage_aliases[self._current_alias]
+        last_stage_index = list(self._build_stage_indices.keys())[-1]
+        last_stage_alias = ''.join({i for i in self._build_stage_aliases if self._build_stage_aliases[i] == last_stage_index})
         # self.send_response(f'last_stage_index:{last_stage_index}')
         # self.send_response(f'last_stage_alias:{last_stage_alias}')
         if not last_stage_alias:
