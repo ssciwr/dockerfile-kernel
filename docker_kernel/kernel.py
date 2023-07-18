@@ -35,7 +35,8 @@ class DockerKernel(Kernel):
         self._api = docker.APIClient(base_url='unix://var/run/docker.sock')
         self._sha1: str | None = None
         self._payload = []
-        self._build_stage_indices = {}
+        self._build_stage_indices: dict[int, tuple[int, str | None]] = {}
+        self._latest_index: int | None = None
         self._build_stage_aliases = {}
         self._current_alias: str | int | None = None
         self._frontend = None
@@ -174,19 +175,13 @@ class DockerKernel(Kernel):
         
         _, *remain = code.split(' ')
         
-        if type(self._current_alias) is int:
-            index = self._current_alias + 1
-        elif type(self._current_alias) is str:
-            index = self._build_stage_aliases[self._current_alias] + 1
-        else:
-            index = 0
+        self._latest_index = self._latest_index + 1 if self._latest_index is not None else 0
+
+        alias = None
         if len(remain) > 1 and remain[1] == 'as':
             alias = remain[2]
-            self._build_stage_aliases[alias] = index
-        else:
-            alias = index
-        self._build_stage_indices[index] = None # The image that is currently in the building process doesn't have an id yet
-        self._current_alias = alias
+            self._build_stage_aliases[alias] = self._latest_index
+        self._build_stage_indices[self._latest_index] = (None, alias) # The image that is currently in the building process doesn't have an id yet
 
     def build_image(self, code):
         """ Build docker image by passing input to the docker API."""
@@ -202,14 +197,14 @@ class DockerKernel(Kernel):
                 loginfo = json.loads(logline.decode())
                 if 'error' in loginfo:
                     self.send_response(f'error:{loginfo["error"]}\n')
-                    self.delete_current_stage()
+                    self._delete_current_stage()
                 if 'aux' in loginfo:
                     self._sha1 = loginfo['aux']['ID']
                 if 'stream' in loginfo:
                     log = loginfo['stream']
                     if log.strip() != "":
                         self.send_response(log)
-            self.save_current_stage()
+            self._save_current_stage()
 
     def _create_dockerfile(self, code, tmp_dir):
         dockerfile_path = os.path.join(tmp_dir, 'Dockerfile')
@@ -217,27 +212,18 @@ class DockerKernel(Kernel):
             dockerfile.write(code)
         return dockerfile_path
 
-    def save_current_stage(self):
-        image_id = self._sha1.split(':')[1][:12]
-        if type(self._current_alias) is int:
-            self._build_stage_indices[self._current_alias] = image_id
-        else:
-            self._build_stage_indices[self._build_stage_aliases[self._current_alias]] = image_id
+    def _save_current_stage(self):
+        _, alias = self._build_stage_indices[self._latest_index]
+        self._build_stage_indices[self._latest_index] = (self._sha1, alias)
+        if alias is not None:
+            self._build_stage_aliases[alias] = self._latest_index
 
-    def delete_current_stage(self):
-        if type(self._current_alias) is int:
-            del self._build_stage_indices[self._current_alias]
-        else:
-            del self._build_stage_indices[self._build_stage_aliases[self._current_alias]]
-            del self._build_stage_aliases[self._current_alias]
-        last_stage_index = list(self._build_stage_indices.keys())[-1]
-        last_stage_alias = ''.join({i for i in self._build_stage_aliases if self._build_stage_aliases[i] == last_stage_index})
-        # self.send_response(f'last_stage_index:{last_stage_index}')
-        # self.send_response(f'last_stage_alias:{last_stage_alias}')
-        if not last_stage_alias:
-            self._current_alias = last_stage_index
-        else:
-            self._current_alias = last_stage_alias
+    def _delete_current_stage(self):
+        _, alias = self._build_stage_indices[self._latest_index]
+        del self._build_stage_indices[self._latest_index]
+        if alias is not None:
+            del self._build_stage_aliases[alias]
+        self._latest_index -= 1
 
     def send_response(self, content_text, stream=None, msg_or_type="stream", content_name="stdout"):
         stream = self.iopub_socket if stream is None else stream
