@@ -26,7 +26,6 @@ jobs:
       uses: actions/checkout@v3
       with:
         # setuptools_scm requires a non-shallow clone of the repository
-        ref: test/dockerfile-hash
         fetch-depth: 0
 
     - name: Set up Python ${{ matrix.python-version }}
