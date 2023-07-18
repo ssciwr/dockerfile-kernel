@@ -1,12 +1,19 @@
-from docker.errors import APIError
+import shutil
+import tempfile
+
 import docker
 import io
 import json
+import os
 from ipykernel.kernelbase import Kernel
+
+from ipylab import JupyterFrontEnd
 
 from .magics.magic import Magic
 from .utils.notebook import get_cursor_frame, get_cursor_words, get_line_start
 from .magics.helper.errors import MagicError
+from .frontend.interaction import FrontendInteraction
+from docker.errors import APIError
 
 # The single source of version truth
 __version__ = "0.0.1"
@@ -19,7 +26,8 @@ class DockerKernel(Kernel):
     language_version = docker.__version__
     language_info = {
         "name": 'docker',
-        'mimetype': 'text/x-dockerfile-config',
+        'mimetype': 'text/x-dockerfile',
+        'codemirror_mode': "Dockerfile",
         'file_extension': ".dockerfile"
     }
     banner = "Dockerfile Kernel"
@@ -34,6 +42,11 @@ class DockerKernel(Kernel):
         self._api = docker.APIClient(base_url='unix://var/run/docker.sock')
         self._sha1: str | None = None
         self._payload = []
+        self._index_to_image_id = {}
+        self._alias_to_index = {}
+        self._current_alias: str | int | None = None
+        self._code: str | None = None
+        self._frontend = None
 
     @property
     def default_tag(self):
@@ -81,11 +94,18 @@ class DockerKernel(Kernel):
             return {'status': 'ok', 'execution_count': self.execution_count, 'payload': self._payload, 'user_expression': {}}
 
         ####################
+        # Frontend execution
+        self._frontend = self._frontend if self._frontend is not None else FrontendInteraction(JupyterFrontEnd())
+        frontend_interacted = self._frontend.handle_code(code)
+        if frontend_interacted:
+            return {'status': 'abort'}
+          
+        ####################
         # Docker execution
         try:
-            code = self.create_build_stage(code)
+            self._code = code.strip()
+            code = self.create_build_stage(self._code)
             self.build_image(code)
-
             return {'status': 'ok', 'execution_count': self.execution_count, 'payload': self._payload, 'user_expression': {}}
         except APIError as e:
             if e.explanation is not None:
@@ -138,25 +158,117 @@ class DockerKernel(Kernel):
         }
 
     def create_build_stage(self, code):
-        """ Add current *_sha1* to the code."""
+        """
+        Add current *_sha1* to the code.
+        Replace base image alias or index with image id.
+        COPY --from=[image alias/index] [src] [dest]
+        -->
+        COPY --from=[image id] [src] [dest]
+        """
+        code = self.replace_base_image_with_id(code)
         if self._sha1 is not None:
             code = f"FROM {self._sha1}\n{code}"
         return code
 
+    def replace_base_image_with_id(self, code):
+        code_seg = code.lower().strip().split(" ")
+
+        try:
+            contain_image = next(x for x in code_seg if x.startswith('--from'))
+        except StopIteration:
+            return code
+        image_alias = ''.join(contain_image).split("=")[1]
+        try:
+            if image_alias.isdigit():
+                base_image_id = self._index_to_image_id[int(image_alias)]
+            else:
+                base_image_id = self._index_to_image_id[self._alias_to_index[image_alias]]
+        except KeyError or IndexError:
+            self.send_response("Can't find the base image")
+        code = f"{code_seg[0]} --from={base_image_id} {' '.join(code_seg[2:])}"
+        return code
+
+    def start_a_new_layer(self, code):
+        if code.lower().startswith('from'):
+            try:
+                _from, *remain = code.split(' ')
+            except ValueError:
+                pass
+            # index = len(self._index_to_image_id)
+            if type(self._current_alias) is int:
+                index = self._current_alias + 1
+            elif type(self._current_alias) is str:
+                index = self._alias_to_index[self._current_alias] + 1
+            else:
+                index = 0
+            if len(remain) > 1 and remain[1] == 'as':
+                alias = remain[2]
+                self._alias_to_index[alias] = index
+            else:
+                alias = index
+            self._index_to_image_id[index] = None
+            self._current_alias = alias
+
     def build_image(self, code):
         """ Build docker image by passing input to the docker API."""
+
         f = io.BytesIO(code.encode('utf-8'))
         logs = []
-        for logline in self._api.build(fileobj=f, rm=True):
-            loginfo = json.loads(logline.decode())
+        tmp_dir = tempfile.mkdtemp()
+        try:
+            self.copy_cwd_to_tmp_dir(tmp_dir)
+            dockerfile_path = self.create_dockerfile(code, tmp_dir)
+        except Exception as e:
+            self.send_response(str(e))
 
+        self.start_a_new_layer(self._code)
+        for logline in self._api.build(path=tmp_dir,dockerfile=dockerfile_path, rm=True):
+            loginfo = json.loads(logline.decode())
+            if 'error' in loginfo:
+                self.send_response(f'error:{loginfo["error"]}\n')
+                self.delete_current_stage()
             if 'aux' in loginfo:
                 self._sha1 = loginfo['aux']['ID']
-
             if 'stream' in loginfo:
                 log = loginfo['stream']
                 if log.strip() != "":
                     self.send_response(log)
+        self.save_current_stage()
+        shutil.rmtree(tmp_dir)
+
+    def copy_cwd_to_tmp_dir(self, tmp_dir):
+        if os.path.exists(tmp_dir):
+            shutil.rmtree(tmp_dir)
+            shutil.copytree(os.getcwd(), tmp_dir)
+
+    def create_dockerfile(self, code, tmp_dir):
+        dockerfile_path = os.path.join(tmp_dir, 'Dockerfile')
+        dockerfile = open(dockerfile_path, 'w+')
+        dockerfile.write(code)
+        dockerfile.close()
+        return dockerfile_path
+
+    def save_current_stage(self):
+        image_id = self._sha1.split(':')[1][:12]
+        if type(self._current_alias) is int:
+            self._index_to_image_id[self._current_alias] = image_id
+        else:
+            self._index_to_image_id[self._alias_to_index[self._current_alias]] = image_id
+
+    def delete_current_stage(self):
+        if type(self._current_alias) is int:
+            del self._index_to_image_id[self._current_alias]
+        else:
+            del self._index_to_image_id[self._alias_to_index[self._current_alias]]
+            del self._alias_to_index[self._current_alias]
+        last_stage_index = list(self._index_to_image_id.keys())[-1]
+        last_stage_alias = ''.join({i for i in self._alias_to_index if self._alias_to_index[i] == last_stage_index})
+        # self.send_response(f'last_stage_index:{last_stage_index}')
+        # self.send_response(f'last_stage_alias:{last_stage_alias}')
+        if not last_stage_alias:
+            self._current_alias = last_stage_index
+        else:
+            self._current_alias = last_stage_alias
 
     def send_response(self, content_text, stream=None, msg_or_type="stream", content_name="stdout"):
         stream = self.iopub_socket if stream is None else stream
