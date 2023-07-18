@@ -168,26 +168,25 @@ class DockerKernel(Kernel):
             self.send_response(f"Attempting to use image with name {image_alias}...")
         return f"{code_segments[0]} --from={base_image_id} {' '.join(code_segments[2:])}"
 
-    def start_a_new_layer(self, code):
-        if code.lower().strip().startswith('from'):
-            try:
-                _from, *remain = code.split(' ')
-            except ValueError:
-                pass
-            # index = len(self._index_to_image_id)
-            if type(self._current_alias) is int:
-                index = self._current_alias + 1
-            elif type(self._current_alias) is str:
-                index = self._alias_to_index[self._current_alias] + 1
-            else:
-                index = 0
-            if len(remain) > 1 and remain[1] == 'as':
-                alias = remain[2]
-                self._alias_to_index[alias] = index
-            else:
-                alias = index
-            self._index_to_image_id[index] = None
-            self._current_alias = alias
+    def _start_a_new_layer(self, code):
+        if not code.lower().strip().startswith('from'):
+            return
+        
+        _, *remain = code.split(' ')
+        
+        if type(self._current_alias) is int:
+            index = self._current_alias + 1
+        elif type(self._current_alias) is str:
+            index = self._alias_to_index[self._current_alias] + 1
+        else:
+            index = 0
+        if len(remain) > 1 and remain[1] == 'as':
+            alias = remain[2]
+            self._alias_to_index[alias] = index
+        else:
+            alias = index
+        self._index_to_image_id[index] = None # The image that is currently in the building process doesn't have an id yet
+        self._current_alias = alias
 
     def build_image(self, code):
         """ Build docker image by passing input to the docker API."""
@@ -198,7 +197,7 @@ class DockerKernel(Kernel):
             except shutil.Error as e:
                 self.send_response(str(e))
 
-            self.start_a_new_layer(code)
+            self._start_a_new_layer(code)
             for logline in self._api.build(path=tmp_dir,dockerfile=dockerfile_path, rm=True):
                 loginfo = json.loads(logline.decode())
                 if 'error' in loginfo:
