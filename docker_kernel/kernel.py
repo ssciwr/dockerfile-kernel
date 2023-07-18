@@ -113,6 +113,7 @@ class DockerKernel(Kernel):
         line_start = get_line_start(code, cursor_pos)
         cursor_start, cursor_end = get_cursor_frame(code, cursor_pos)
 
+        # Magic command completion
         if line_start and line_start.startswith("%"):
             matches.extend(Magic.do_complete(code, cursor_pos))
 
