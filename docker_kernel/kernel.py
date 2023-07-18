@@ -81,14 +81,14 @@ class DockerKernel(Kernel):
                 return {'status': 'ok', 'execution_count': self.execution_count, 'payload': self._payload, 'user_expression': {}}
         except MagicError as e:
             self.send_response(str(e))
-            return {'status': 'ok', 'execution_count': self.execution_count, 'payload': self._payload, 'user_expression': {}}
+            return {'status': 'error', "ename": "MagicError", "evalue": str(e), "traceback": []}
 
         ####################
         # Frontend execution
         self._frontend = self._frontend if self._frontend is not None else FrontendInteraction(JupyterFrontEnd())
         frontend_interacted = self._frontend.handle_code(code)
         if frontend_interacted:
-            return {'status': 'abort'}
+            return {'status': 'error', "ename": "FrontEndExecuted", "evalue": "", "traceback": []}
         
         ####################
         # Docker execution
