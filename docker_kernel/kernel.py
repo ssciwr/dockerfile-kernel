@@ -68,7 +68,11 @@ class DockerKernel(Kernel):
         dict
             Specified [here](https://jupyter-client.readthedocs.io/en/stable/messaging.html#execution-results)
         """
+        
+        ####################
+        # Prepare kernel for code execution
         self._payload = []
+        self._frontend = self._frontend if self._frontend is not None else FrontendInteraction(JupyterFrontEnd())
         
         ####################
         # Magic execution
@@ -84,7 +88,6 @@ class DockerKernel(Kernel):
 
         ####################
         # Frontend execution
-        self._frontend = self._frontend if self._frontend is not None else FrontendInteraction(JupyterFrontEnd())
         frontend_interacted = self._frontend.handle_code(code)
         if frontend_interacted:
             return {'status': 'error', "ename": "FrontEndExecuted", "evalue": "", "traceback": []}
@@ -246,7 +249,7 @@ class DockerKernel(Kernel):
 
     def send_response(self, content_text, stream=None, msg_or_type="stream", content_name="stdout"):
         stream = self.iopub_socket if stream is None else stream
-        return super().send_response(stream, msg_or_type, {"name": content_name, "text": content_text})
+        super().send_response(stream, msg_or_type, {"name": content_name, "text": content_text})
     
     def set_payload(self, source: str, text: str, replace: bool):
         """ Trigger frontend action via payloads. 
