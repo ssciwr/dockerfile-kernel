@@ -142,28 +142,32 @@ class DockerKernel(Kernel):
         -->
         COPY --from=[image id] [src] [dest]
         """
-        code = self.replace_base_image_with_id(code)
+        code = self._replace_alias(code)
         if self._sha1 is not None:
             code = f"FROM {self._sha1}\n{code}"
         return code
 
-    def replace_base_image_with_id(self, code):
-        code_seg = code.lower().strip().split(" ")
-
+    def _replace_alias(self, code):
+        code_segments = code.lower().strip().split(" ")
         try:
-            contain_image = next(x for x in code_seg if x.startswith('--from'))
+            # Get code segment where image is specified
+            image_segment = next(x for x in code_segments if x.startswith('--from='))
         except StopIteration:
             return code
-        image_alias = ''.join(contain_image).split("=")[1]
+        
         try:
+            image_alias = image_segment.split("=")[1]
             if image_alias.isdigit():
                 base_image_id = self._index_to_image_id[int(image_alias)]
             else:
                 base_image_id = self._index_to_image_id[self._alias_to_index[image_alias]]
-        except KeyError or IndexError:
-            self.send_response("Can't find the base image")
-        code = f"{code_seg[0]} --from={base_image_id} {' '.join(code_seg[2:])}"
-        return code
+        except IndexError:
+            base_image_id = ""
+        except KeyError:
+            base_image_id = image_alias
+            self.send_response(f"Note: Build stage {image_alias} is not known.")
+            self.send_response(f"Attempting to use image with name {image_alias}...")
+        return f"{code_segments[0]} --from={base_image_id} {' '.join(code_segments[2:])}"
 
     def start_a_new_layer(self, code):
         if code.lower().strip().startswith('from'):
