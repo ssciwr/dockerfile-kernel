@@ -10,6 +10,7 @@ from ipylab import JupyterFrontEnd
 
 from .magics.magic import Magic
 from .utils.notebook import get_cursor_frame
+from .utils.filesystem import create_dockerfile
 from .magics.helper.errors import MagicError
 from .frontend.interaction import FrontendInteraction
 from docker.errors import APIError
@@ -46,7 +47,11 @@ class DockerKernel(Kernel):
         info = super().kernel_info
         info["imageId"] = self._sha1
         return info
-      
+    
+    ########################################
+    # Core functionalities
+    ########################################
+
     def do_execute(self, code: str, silent: bool, store_history=True, user_expressions={}, allow_stdin=False):
         """ Execute user code.
         
@@ -104,36 +109,6 @@ class DockerKernel(Kernel):
             else:
                 self.send_response(str(e))
 
-    def do_complete(self, code: str, cursor_pos: int):
-        """Provide code completion
-        
-        Parameters
-        ----------
-        code: str
-            The code already present
-        cursor_pos: int
-            The position in the code where completion is requested
-
-        Returns
-        -------
-        complete_reply: dict
-
-        See [here](https://jupyter-client.readthedocs.io/en/stable/messaging.html#completion) for reference
-        """
-        matches = []
-        matches.extend(Magic.do_complete(code, cursor_pos))
-        matches.sort()
-
-        cursor_start, cursor_end = get_cursor_frame(code, cursor_pos)
-        
-        return {
-            "status": "ok",
-            "matches": matches,
-            "cursor_start": cursor_start,
-            "cursor_end": cursor_end,
-            "metadata": {},
-        }
-
     def create_build_stage(self, code):
         """
         Add current *_sha1* to the code.
@@ -147,69 +122,9 @@ class DockerKernel(Kernel):
             code = f"FROM {self._sha1}\n{code}"
         return code
 
-    def _replace_alias(self, code):
-        code_segments = code.lower().strip().split(" ")
-        try:
-            # Get code segment where image is specified
-            image_segment = next(x for x in code_segments if x.startswith('--from='))
-        except StopIteration:
-            return code
-        
-        try:
-            image_alias = image_segment.split("=")[1]
-            if image_alias.isdigit():
-                base_image_id = self._build_stage_indices[int(image_alias)]
-            else:
-                base_image_id = self._build_stage_indices[self._build_stage_aliases[image_alias]]
-        except IndexError:
-            base_image_id = ""
-        except KeyError:
-            base_image_id = image_alias
-            self.send_response(f"Note: Build stage {image_alias} is not known.")
-            self.send_response(f"Attempting to use image with name {image_alias}...")
-        return f"{code_segments[0]} --from={base_image_id} {' '.join(code_segments[2:])}"
-
-    def _create_build_stage(self, code, image_id):
-        if not code.lower().strip().startswith('from'):
-            return
-        
-        _, *remain = code.split(' ')
-        
-        self._latest_index = self._latest_index + 1 if self._latest_index is not None else 0
-
-        alias = None
-        if len(remain) > 1 and remain[1] == 'as':
-            alias = remain[2]
-            self._build_stage_aliases[alias] = self._latest_index
-        self._build_stage_indices[self._latest_index] = (image_id, alias)
-
-    def build_image(self, code):
-        """ Build docker image by passing input to the docker API."""
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            try:
-                shutil.copytree(os.getcwd(), tmp_dir, dirs_exist_ok=True)
-                dockerfile_path = self._create_dockerfile(code, tmp_dir)
-            except shutil.Error as e:
-                self.send_response(str(e))
-
-            for logline in self._api.build(path=tmp_dir,dockerfile=dockerfile_path, rm=True):
-                loginfo = json.loads(logline.decode())
-                if 'error' in loginfo:
-                    self.send_response(f'error:{loginfo["error"]}\n')
-                if 'aux' in loginfo:
-                    self._sha1 = loginfo['aux']['ID']
-                    self._create_build_stage(code, loginfo['aux']['ID'])
-                if 'stream' in loginfo:
-                    log = loginfo['stream']
-                    if log.strip() != "":
-                        self.send_response(log)
-
-    def _create_dockerfile(self, code, tmp_dir):
-        dockerfile_path = os.path.join(tmp_dir, 'Dockerfile')
-        with open(dockerfile_path, 'w+') as dockerfile:
-            dockerfile.write(code)
-        return dockerfile_path
-
+    ########################################
+    # Notebook interaction
+    ########################################
 
     def send_response(self, content_text, stream=None, msg_or_type="stream", content_name="stdout"):
         stream = self.iopub_socket if stream is None else stream
@@ -240,6 +155,40 @@ class DockerKernel(Kernel):
             "replace": replace,
         }]
 
+    def do_complete(self, code: str, cursor_pos: int):
+        """Provide code completion
+        
+        Parameters
+        ----------
+        code: str
+            The code already present
+        cursor_pos: int
+            The position in the code where completion is requested
+
+        Returns
+        -------
+        complete_reply: dict
+
+        See [here](https://jupyter-client.readthedocs.io/en/stable/messaging.html#completion) for reference
+        """
+        matches = []
+        matches.extend(Magic.do_complete(code, cursor_pos))
+        matches.sort()
+
+        cursor_start, cursor_end = get_cursor_frame(code, cursor_pos)
+        
+        return {
+            "status": "ok",
+            "matches": matches,
+            "cursor_start": cursor_start,
+            "cursor_end": cursor_end,
+            "metadata": {},
+        }
+    
+    ########################################
+    # Docker functionality
+    ########################################
+
     def tag_image(self, name: str, tag: str|None=None):
         """ Tag an image.
         Parameters
@@ -264,4 +213,59 @@ class DockerKernel(Kernel):
         else:
             raise MagicError("no valid image, please build the image first")
 
+    def build_image(self, code):
+        """ Build docker image by passing input to the docker API."""
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            try:
+                shutil.copytree(os.getcwd(), tmp_dir, dirs_exist_ok=True)
+                dockerfile_path = create_dockerfile(code, tmp_dir)
+            except shutil.Error as e:
+                self.send_response(str(e))
 
+            for logline in self._api.build(path=tmp_dir,dockerfile=dockerfile_path, rm=True):
+                loginfo = json.loads(logline.decode())
+                if 'error' in loginfo:
+                    self.send_response(f'error:{loginfo["error"]}\n')
+                if 'aux' in loginfo:
+                    self._sha1 = loginfo['aux']['ID']
+                    self._save_build_stage(code, loginfo['aux']['ID'])
+                if 'stream' in loginfo:
+                    log = loginfo['stream']
+                    if log.strip() != "":
+                        self.send_response(log)
+
+    def _save_build_stage(self, code, image_id):
+        if not code.lower().strip().startswith('from'):
+            return
+        
+        _, *remain = code.split(' ')
+        
+        self._latest_index = self._latest_index + 1 if self._latest_index is not None else 0
+
+        alias = None
+        if len(remain) > 1 and remain[1] == 'as':
+            alias = remain[2]
+            self._build_stage_aliases[alias] = self._latest_index
+        self._build_stage_indices[self._latest_index] = (image_id, alias)
+
+    def _replace_alias(self, code):
+        code_segments = code.lower().strip().split(" ")
+        try:
+            # Get code segment where image is specified
+            image_segment = next(x for x in code_segments if x.startswith('--from='))
+        except StopIteration:
+            return code
+        
+        try:
+            image_alias = image_segment.split("=")[1]
+            if image_alias.isdigit():
+                base_image_id = self._build_stage_indices[int(image_alias)]
+            else:
+                base_image_id = self._build_stage_indices[self._build_stage_aliases[image_alias]]
+        except IndexError:
+            base_image_id = ""
+        except KeyError:
+            base_image_id = image_alias
+            self.send_response(f"Note: Build stage {image_alias} is not known.")
+            self.send_response(f"Attempting to use image with name {image_alias}...")
+        return f"{code_segments[0]} --from={base_image_id} {' '.join(code_segments[2:])}"
