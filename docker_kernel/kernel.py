@@ -2,7 +2,6 @@ import shutil
 import tempfile
 
 import docker
-import io
 import json
 import os
 from ipykernel.kernelbase import Kernel
@@ -95,8 +94,8 @@ class DockerKernel(Kernel):
         ####################
         # Docker execution
         try:
-            code = self.create_build_stage(code)
-            self.build_image(code)
+            build_code = self.create_build_stage(code)
+            self.build_image(build_code)
             return {'status': 'ok', 'execution_count': self.execution_count, 'payload': self._payload, 'user_expression': {}}
         except APIError as e:
             if e.explanation is not None:
@@ -192,30 +191,26 @@ class DockerKernel(Kernel):
 
     def build_image(self, code):
         """ Build docker image by passing input to the docker API."""
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            try:
+                self.copy_cwd_to_tmp_dir(tmp_dir)
+                dockerfile_path = self.create_dockerfile(code, tmp_dir)
+            except Exception as e:
+                self.send_response(str(e))
 
-        f = io.BytesIO(code.encode('utf-8'))
-        logs = []
-        tmp_dir = tempfile.mkdtemp()
-        try:
-            self.copy_cwd_to_tmp_dir(tmp_dir)
-            dockerfile_path = self.create_dockerfile(code, tmp_dir)
-        except Exception as e:
-            self.send_response(str(e))
-
-        self.start_a_new_layer(code)
-        for logline in self._api.build(path=tmp_dir,dockerfile=dockerfile_path, rm=True):
-            loginfo = json.loads(logline.decode())
-            if 'error' in loginfo:
-                self.send_response(f'error:{loginfo["error"]}\n')
-                self.delete_current_stage()
-            if 'aux' in loginfo:
-                self._sha1 = loginfo['aux']['ID']
-            if 'stream' in loginfo:
-                log = loginfo['stream']
-                if log.strip() != "":
-                    self.send_response(log)
-        self.save_current_stage()
-        shutil.rmtree(tmp_dir)
+            self.start_a_new_layer(code)
+            for logline in self._api.build(path=tmp_dir,dockerfile=dockerfile_path, rm=True):
+                loginfo = json.loads(logline.decode())
+                if 'error' in loginfo:
+                    self.send_response(f'error:{loginfo["error"]}\n')
+                    self.delete_current_stage()
+                if 'aux' in loginfo:
+                    self._sha1 = loginfo['aux']['ID']
+                if 'stream' in loginfo:
+                    log = loginfo['stream']
+                    if log.strip() != "":
+                        self.send_response(log)
+            self.save_current_stage()
 
     def copy_cwd_to_tmp_dir(self, tmp_dir):
         if os.path.exists(tmp_dir):
