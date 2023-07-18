@@ -41,11 +41,6 @@ class DockerKernel(Kernel):
         self._current_alias: str | int | None = None
         self._code: str | None = None
         self._frontend = None
-
-    
-    @property
-    def default_tag(self):
-        return "latest"
       
     @property
     def kernel_info(self):
