@@ -36,10 +36,9 @@ class DockerKernel(Kernel):
         self._api = docker.APIClient(base_url='unix://var/run/docker.sock')
         self._sha1: str | None = None
         self._payload = []
-        self._build_stage_indices: dict[int, tuple[int, str | None]] = {}
+        self._build_stage_indices: dict[int, tuple[str, str | None]] = {}
         self._latest_index: int | None = None
         self._build_stage_aliases = {}
-        self._current_alias: str | int | None = None
         self._frontend = None
       
     @property
@@ -261,9 +260,9 @@ class DockerKernel(Kernel):
         try:
             image_alias = image_segment.split("=")[1]
             if image_alias.isdigit():
-                base_image_id = self._build_stage_indices[int(image_alias)]
+                base_image_id = self._build_stage_indices[int(image_alias)][0]
             else:
-                base_image_id = self._build_stage_indices[self._build_stage_aliases[image_alias]]
+                base_image_id = self._build_stage_indices[self._build_stage_aliases[image_alias]][0]
         except IndexError:
             base_image_id = ""
         except KeyError:
