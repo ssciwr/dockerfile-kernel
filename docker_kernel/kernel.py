@@ -39,7 +39,6 @@ class DockerKernel(Kernel):
         self._index_to_image_id = {}
         self._alias_to_index = {}
         self._current_alias: str | int | None = None
-        self._code: str | None = None
         self._frontend = None
       
     @property
@@ -93,8 +92,7 @@ class DockerKernel(Kernel):
         ####################
         # Docker execution
         try:
-            self._code = code.strip()
-            code = self.create_build_stage(self._code)
+            code = self.create_build_stage(code)
             self.build_image(code)
             return {'status': 'ok', 'execution_count': self.execution_count, 'payload': self._payload, 'user_expression': {}}
         except APIError as e:
@@ -165,7 +163,7 @@ class DockerKernel(Kernel):
         return code
 
     def start_a_new_layer(self, code):
-        if code.lower().startswith('from'):
+        if code.lower().strip().startswith('from'):
             try:
                 _from, *remain = code.split(' ')
             except ValueError:
@@ -197,7 +195,7 @@ class DockerKernel(Kernel):
         except Exception as e:
             self.send_response(str(e))
 
-        self.start_a_new_layer(self._code)
+        self.start_a_new_layer(code)
         for logline in self._api.build(path=tmp_dir,dockerfile=dockerfile_path, rm=True):
             loginfo = json.loads(logline.decode())
             if 'error' in loginfo:
