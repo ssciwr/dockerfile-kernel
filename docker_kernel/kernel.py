@@ -169,7 +169,7 @@ class DockerKernel(Kernel):
             self.send_response(f"Attempting to use image with name {image_alias}...")
         return f"{code_segments[0]} --from={base_image_id} {' '.join(code_segments[2:])}"
 
-    def _start_a_new_layer(self, code):
+    def _create_build_stage(self, code, image_id):
         if not code.lower().strip().startswith('from'):
             return
         
@@ -181,7 +181,7 @@ class DockerKernel(Kernel):
         if len(remain) > 1 and remain[1] == 'as':
             alias = remain[2]
             self._build_stage_aliases[alias] = self._latest_index
-        self._build_stage_indices[self._latest_index] = (None, alias) # The image that is currently in the building process doesn't have an id yet
+        self._build_stage_indices[self._latest_index] = (image_id, alias)
 
     def build_image(self, code):
         """ Build docker image by passing input to the docker API."""
@@ -192,19 +192,17 @@ class DockerKernel(Kernel):
             except shutil.Error as e:
                 self.send_response(str(e))
 
-            self._start_a_new_layer(code)
             for logline in self._api.build(path=tmp_dir,dockerfile=dockerfile_path, rm=True):
                 loginfo = json.loads(logline.decode())
                 if 'error' in loginfo:
                     self.send_response(f'error:{loginfo["error"]}\n')
-                    self._delete_current_stage()
                 if 'aux' in loginfo:
                     self._sha1 = loginfo['aux']['ID']
+                    self._create_build_stage(code, loginfo['aux']['ID'])
                 if 'stream' in loginfo:
                     log = loginfo['stream']
                     if log.strip() != "":
                         self.send_response(log)
-            self._save_current_stage()
 
     def _create_dockerfile(self, code, tmp_dir):
         dockerfile_path = os.path.join(tmp_dir, 'Dockerfile')
@@ -212,18 +210,6 @@ class DockerKernel(Kernel):
             dockerfile.write(code)
         return dockerfile_path
 
-    def _save_current_stage(self):
-        _, alias = self._build_stage_indices[self._latest_index]
-        self._build_stage_indices[self._latest_index] = (self._sha1, alias)
-        if alias is not None:
-            self._build_stage_aliases[alias] = self._latest_index
-
-    def _delete_current_stage(self):
-        _, alias = self._build_stage_indices[self._latest_index]
-        del self._build_stage_indices[self._latest_index]
-        if alias is not None:
-            del self._build_stage_aliases[alias]
-        self._latest_index -= 1
 
     def send_response(self, content_text, stream=None, msg_or_type="stream", content_name="stdout"):
         stream = self.iopub_socket if stream is None else stream
