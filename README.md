@@ -28,6 +28,17 @@ pip install helper_extension/dist/helper_extension-0.1.0-py3-none-any.whl
 
 Then, running `jupyter lab` you should be able to run the prototype.
 
+## Testing
+You can execute tests by installing pytest via `pip install -U pytest`.
+Run `pytest` to execute the tests.
+##### Included Tests
+- Compare Dockerfile image ids after executing in notebook versus docker api
+  - Implemented in `test_image_ids.py.`
+  - How to add new test cases:
+    1. Add a new *directory* in `test/test_envs`
+    2. Include a Dockerfile (named `[something.]Dockerfile`)
+    3. Add further files to the directory as context if required by the Dockerfile
+
 ## Links
 
 * https://jupyter-client.readthedocs.io/en/stable/wrapperkernels.html
