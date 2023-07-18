@@ -25,7 +25,8 @@ class DockerKernel(Kernel):
     language_version = docker.__version__
     language_info = {
         "name": 'docker',
-        'mimetype': 'text/x-dockerfile-config',
+        'mimetype': 'text/x-dockerfile',
+        'codemirror_mode': "Dockerfile",
         'file_extension': ".dockerfile"
     }
     banner = "Dockerfile Kernel"
