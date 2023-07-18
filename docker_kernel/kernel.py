@@ -10,6 +10,7 @@ from ipylab import JupyterFrontEnd
 
 from .magics.magic import Magic
 from .utils.notebook import get_cursor_frame, get_cursor_words, get_line_start
+from .utils.filesystem import create_dockerfile
 from .magics.helper.errors import MagicError
 from .frontend.interaction import FrontendInteraction
 from docker.errors import APIError
@@ -104,8 +105,7 @@ class DockerKernel(Kernel):
         ####################
         # Docker execution
         try:
-            build_code = self.create_build_stage(code)
-            self.build_image(build_code)
+            self.build_image(code)
             return {'status': 'ok', 'execution_count': self.execution_count, 'payload': self._payload, 'user_expression': {}}
         except APIError as e:
             if e.explanation is not None:
@@ -237,7 +237,8 @@ class DockerKernel(Kernel):
         with tempfile.TemporaryDirectory() as tmp_dir:
             try:
                 shutil.copytree(os.getcwd(), tmp_dir, dirs_exist_ok=True)
-                dockerfile_path = create_dockerfile(code, tmp_dir)
+                build_code = self.create_build_stage(code)
+                dockerfile_path = create_dockerfile(build_code, tmp_dir)
             except shutil.Error as e:
                 self.send_response(str(e))
 
@@ -257,6 +258,8 @@ class DockerKernel(Kernel):
 
     def _save_build_stage(self, code, image_id):
         if not code.lower().strip().startswith('from'):
+            _, alias = self._build_stage_indices[self._latest_index]
+            self._build_stage_indices[self._latest_index] = (image_id, alias)
             return
         
         _, *remain = code.split(' ')
