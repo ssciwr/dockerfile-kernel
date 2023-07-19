@@ -98,7 +98,22 @@ const plugin: JupyterFrontEndPlugin<void> = {
           app.serviceManager.serverSettings
         );
         const file = await response.json();
-        const cells: string[] = file.content.split('\n\n');
+
+        let cells: string[] = [];
+        const codeBlocks: string = file.content.split('\n#cellEnd');
+        for (var block of codeBlocks) {
+          let codeCells = block.split('#cellStart\n');
+          for (var cell of codeCells) {
+            // Cell is not multiline cell with empty lines
+            if (cell.startsWith('\n') || cell.endsWith('\n')) {
+              cells.push(...cell.split('\n\n').filter(cell => cell.length > 0));
+            } else {
+              // Cell can be an empty string if cellStart was the first or cellEnd the last line in the Dockerfile
+              if (cell !== "")
+                cells.push(cell);
+            }
+          }
+        }
 
         // Create notebook json
         type Cell = {
@@ -146,20 +161,19 @@ const plugin: JupyterFrontEndPlugin<void> = {
           nbformat_minor: 5
         };
 
-        const markdownComment = "#md "
+        const markdownComment = '#md ';
         const magicComment = '#mg ';
         for (var cell of cells) {
-          let editedCell: string[] = []
+          let editedCell: string[] = [];
           let cellType = 'code';
-          for (var line of cell.split("\n")) {
+          for (var line of cell.split('\n')) {
             if (line.startsWith(markdownComment)) {
               line = line.substring(markdownComment.length);
               cellType = 'markdown';
-            }
-            else if (line.startsWith(magicComment)) {
+            } else if (line.startsWith(magicComment)) {
               line = line.substring(magicComment.length);
             }
-            editedCell.push(line + "\n");
+            editedCell.push(line + '\n');
           }
 
           let lastLine = editedCell.pop();
