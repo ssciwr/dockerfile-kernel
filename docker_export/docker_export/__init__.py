@@ -9,6 +9,15 @@ class DockerExporter(TemplateExporter):
     """
     export_from_notebook = "Dockerfile"
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.environment.globals['cell_has_empty_line'] = self.cell_has_empty_line
+
+    def cell_has_empty_line(self, cell):
+        lines = cell.source.split("\n")
+        empty_lines = [l for l in lines if not l]
+        return len(empty_lines) > 0
+
     def _file_extension_default(self):
         """
         Dockerfiles have no extension
