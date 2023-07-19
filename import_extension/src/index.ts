@@ -98,7 +98,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
           app.serviceManager.serverSettings
         );
         const file = await response.json();
-        const lines: string[] = file.content.split('\n\n');
+        const cells: string[] = file.content.split('\n\n');
 
         // Create notebook json
         type Cell = {
@@ -146,30 +146,35 @@ const plugin: JupyterFrontEndPlugin<void> = {
           nbformat_minor: 5
         };
 
-        const splitLines = (line: string): string[] => {
-          line = line.trim()
-          let lines = line.split('\n');
-          for (var i = 0; i < lines.length-1; i++) {
-            lines[i] += "\n"
-          }
-          return lines
-        };
-
-        for (var line of lines) {
+        const markdownComment = "#md "
+        const magicComment = '#mg ';
+        for (var cell of cells) {
+          let editedCell: string[] = []
           let cellType = 'code';
-          if (line.startsWith('# ')) {
-            line = line.substring(2);
-            if (!line.startsWith("%")){
+          for (var line of cell.split("\n")) {
+            if (line.startsWith(markdownComment)) {
+              line = line.substring(markdownComment.length);
               cellType = 'markdown';
             }
+            else if (line.startsWith(magicComment)) {
+              line = line.substring(magicComment.length);
+            }
+            editedCell.push(line + "\n");
           }
+
+          let lastLine = editedCell.pop();
+          lastLine = lastLine?.substring(0, lastLine.length - 1);
+          if (lastLine !== undefined) {
+            editedCell.push(lastLine);
+          }
+
           content.cells.push({
             cell_type: cellType,
             execution_count: null,
             id: UUID.uuid4(),
             metadata: {},
             outputs: [],
-            source: splitLines(line)
+            source: editedCell
           });
         }
 
