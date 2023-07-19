@@ -12,6 +12,7 @@ Currently, the following prerequisites need to be met:
 * Docker needs to be installed
 * The user needs to be in the `docker` group (see e.g. https://askubuntu.com/a/739861)
 * JupyterLab >= 4.0.0 needs to be installed
+* Ipylab needs to be installed
 
 You can then install the kernel with:
 
