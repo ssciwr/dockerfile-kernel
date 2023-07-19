@@ -45,6 +45,7 @@ class DockerKernel(Kernel):
         self._build_stage_indices: dict[int, tuple[str, str | None]] = {}
         self._latest_index: int | None = None
         self._build_stage_aliases = {}
+        self._build_context_dir: str = os.getcwd() # directory the kernel was started in
         self._frontend = None
 
     @property
