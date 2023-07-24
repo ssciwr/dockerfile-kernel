@@ -45,6 +45,7 @@ class DockerKernel(Kernel):
         self._build_stage_indices: dict[int, tuple[str, str | None]] = {}
         self._latest_index: int | None = None
         self._build_stage_aliases = {}
+        self._build_context_dir: str = os.getcwd() # directory the kernel was started in
         self._frontend = None
 
     @property
@@ -236,7 +237,7 @@ class DockerKernel(Kernel):
         """ Build docker image by passing input to the docker API."""
         with tempfile.TemporaryDirectory() as tmp_dir:
             try:
-                shutil.copytree(os.getcwd(), tmp_dir, dirs_exist_ok=True)
+                shutil.copytree(self._build_context_dir, tmp_dir, dirs_exist_ok=True)
                 build_code = self.create_build_stage(code)
                 dockerfile_path = create_dockerfile(build_code, tmp_dir)
             except shutil.Error as e:
