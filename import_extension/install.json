@@ -1,5 +1,0 @@
-{
-  "packageManager": "python",
-  "packageName": "import_extension",
-  "uninstallInstructions": "Use your Python package manager (pip, conda, etc.) to uninstall the package import_extension"
-}
