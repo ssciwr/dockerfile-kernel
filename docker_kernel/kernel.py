@@ -112,6 +112,7 @@ class DockerKernel(Kernel):
         # Docker execution
         try:
             self.build_image(code)
+            # self.send_response(f"temp dir:{self._tmp_dir.name}\n")
             return {'status': 'ok', 'execution_count': self.execution_count, 'payload': self._payload, 'user_expression': {}}
         except APIError as e:
             if e.explanation is not None:
