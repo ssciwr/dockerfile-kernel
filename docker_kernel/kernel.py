@@ -10,7 +10,7 @@ from ipylab import JupyterFrontEnd
 
 from .magics.magic import Magic
 from .utils.notebook import get_cursor_frame, get_cursor_words, get_line_start
-from .utils.filesystem import create_dockerfile
+from .utils.filesystem import create_dockerfile, remove_tmp_dir,copy_files
 from .magics.helper.errors import MagicError
 from .frontend.interaction import FrontendInteraction
 from docker.errors import APIError
@@ -47,6 +47,11 @@ class DockerKernel(Kernel):
         self._build_stage_aliases = {}
         self._build_context_dir: str = os.getcwd() # directory the kernel was started in
         self._frontend = None
+        self._tmp_dir = tempfile.TemporaryDirectory()
+        copy_files(self._build_context_dir, self._tmp_dir.name)
+
+    def __del__(self):
+        remove_tmp_dir(self._tmp_dir)
 
     @property
     def kernel_info(self):
@@ -107,6 +112,7 @@ class DockerKernel(Kernel):
         # Docker execution
         try:
             self.build_image(code)
+            # self.send_response(f"temp dir:{self._tmp_dir.name}\n")
             return {'status': 'ok', 'execution_count': self.execution_count, 'payload': self._payload, 'user_expression': {}}
         except APIError as e:
             if e.explanation is not None:
@@ -235,27 +241,23 @@ class DockerKernel(Kernel):
 
     def build_image(self, code):
         """ Build docker image by passing input to the docker API."""
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            try:
-                shutil.copytree(self._build_context_dir, tmp_dir, dirs_exist_ok=True)
-                build_code = self.create_build_stage(code)
-                dockerfile_path = create_dockerfile(build_code, tmp_dir)
-            except shutil.Error as e:
-                self.send_response(str(e))
+        tmp_dir = self._tmp_dir.name
+        build_code = self.create_build_stage(code)
+        dockerfile_path = create_dockerfile(build_code, tmp_dir)
 
-            for logline in self._api.build(path=tmp_dir,dockerfile=dockerfile_path, rm=True):
-                loginfo = json.loads(logline.decode())
-                if 'error' in loginfo:
-                    self.send_response(f'error:{loginfo["error"]}\n')
-                    return
-                if 'aux' in loginfo:
-                    self._sha1 = loginfo['aux']['ID']
-                if 'stream' in loginfo:
-                    log = loginfo['stream']
-                    if log.strip() != "":
-                        self.send_response(log)
+        for logline in self._api.build(path=tmp_dir,dockerfile=dockerfile_path, rm=True):
+            loginfo = json.loads(logline.decode())
+            if 'error' in loginfo:
+                self.send_response(f'error:{loginfo["error"]}\n')
+                return
+            if 'aux' in loginfo:
+                self._sha1 = loginfo['aux']['ID']
+            if 'stream' in loginfo:
+                log = loginfo['stream']
+                if log.strip() != "":
+                    self.send_response(log)
 
-            self._save_build_stage(code, self._sha1)
+        self._save_build_stage(code, self._sha1)
 
     def _save_build_stage(self, code, image_id):
         if not code.lower().strip().startswith('from'):
