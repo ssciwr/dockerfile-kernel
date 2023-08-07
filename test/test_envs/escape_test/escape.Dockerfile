@@ -1,5 +1,5 @@
 # escape=`
 
-FROM microsoft/nanoserver
-COPY testfile.txt c:\
-RUN dir c:\
+FROM ubuntu
+RUN echo "HelloWorld" && `
+    echo "World"
