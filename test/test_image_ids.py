@@ -1,5 +1,5 @@
 import sys
-
+import pytest
 import docker
 import os
 import json
@@ -38,15 +38,11 @@ def generateDockerId(test_directory, dockerfile_name):
                 docker_id = loginfo['aux']['ID']
     return docker_id
 
-
-def test_image_ids():
-    DEFAULT_TEST_PATH = os.path.join(os.path.dirname(__file__), "test_envs")
-    try:
-        test_path = sys.argv[1]
-    except IndexError:
-        test_path = DEFAULT_TEST_PATH
-    finally:
-        test_directories = [os.path.join(test_path, d) for d in next(os.walk(test_path))[1]]
+@pytest.mark.parametrize("Dockerfile_dir", (d for d in os.listdir(os.path.join(os.path.dirname(__file__), "test_envs"))))
+def test_image_ids(Dockerfile_dir):
+    test_path = os.path.join(os.path.dirname(__file__), "test_envs", Dockerfile_dir)
+    test_directories = [os.path.join(test_path, d) for d in next(os.walk(test_path))[1]]
+    
     for test_directory in test_directories:
         dockerfile_name = next(f for f in os.listdir(test_directory) if os.path.isfile(os.path.join(test_directory, f)) and f.lower().endswith("dockerfile"))
         kernel_id = generateKernelId(test_directory, dockerfile_name)
