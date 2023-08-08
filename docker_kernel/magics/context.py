@@ -20,7 +20,7 @@ class Context(Magic):
         exists: Callable[[str], bool] = lambda path: os.path.exists(path)
         is_directory: Callable[[str], bool] = lambda path: os.path.isdir(path)
         return {
-            0: [(exists, "Specified directory doesn't extist"),
+            0: [(exists, "Specified directory doesn't exist"),
                 (is_directory, "Specified path is no directory")]
         }
     
