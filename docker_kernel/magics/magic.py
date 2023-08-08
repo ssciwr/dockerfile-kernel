@@ -57,7 +57,7 @@ class Magic(ABC):
         The integer key specifies the index of the argument to be checked.
         Indices not present will be ignored.
         The tuple consists of
-            - a lambda expression taht returns a bool
+            - a lambda expression that returns a bool
             - a description of the condition for an error message
 
         Example

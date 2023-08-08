@@ -1,6 +1,9 @@
+import re
+
 from typing import Callable
 
 from .magic import Magic
+from .helper.errors import MagicError
 from .helper.types import FlagDict
 
 class Arg(Magic):
@@ -22,7 +25,11 @@ class Arg(Magic):
     
     def _execute_magic(self) -> None:
         for arg in self._args:
+            if not re.match("^[^\s]+=[^\s]+$", arg):
+                raise MagicError(f"'{arg}' does not match input format, expected format: 'foo=bar'")
+
+        for arg in self._args:
             name, value = arg.split("=")
             self._kernel.set_buildargs(**dict(name = value))
-            self._kernel.send_response(f"Build argument '{name}' set to '{value}'")
+            self._kernel.send_response(f"Build argument '{name}' set to '{value}'\n")
 
