@@ -1,0 +1,70 @@
+name: CI
+
+on:
+  # We run CI on pushes to the main branch
+  push:
+    branches:
+      - main
+  # and on all pull requests to the main branch
+  pull_request:
+    branches:
+      - main
+  # as well as upon manual triggers through the 'Actions' tab of the Github UI
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    name: Testing on ${{matrix.os}}
+    runs-on: ${{matrix.os}}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        python-version: ["3.11"]
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      with:
+        # setuptools_scm requires a non-shallow clone of the repository
+        fetch-depth: 0
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Set up Docker
+      uses: docker-practice/actions-setup-docker@master
+      with:
+        docker_version: "20.10"
+        docker_channel: "stable"
+    #tbd: Is the user in the docker group?
+
+    - name: Install jupyterlab
+      run: python -m pip install jupyterlab
+    
+    - name: Install pytest
+      run: python -m pip install pytest
+
+    - name: Install ipylab
+      run: python -m pip install ipylab
+
+    - name: Change to repository folder
+      run: cd $GITHUB_WORKSPACE
+
+    - name: Install Python package
+      run: |
+        python -m pip install -e .
+        python -m pip install -e ./docker_export
+
+    - name: Install the kernel
+      run: python docker_kernel/install.py
+              
+    - name: Install shell_extension
+      run: pip install shell_extension/dist/shell_extension-0.1.0-py3-none-any.whl
+
+    - name: Install import_extension
+      run: pip install import_extension/dist/import_extension-0.1.0-py3-none-any.whl
+
+    - name: Run tests
+      run: pytest
