@@ -246,10 +246,12 @@ class DockerKernel(Kernel):
         build_code = self.create_build_stage(code)
         dockerfile_path = create_dockerfile(build_code, tmp_dir)
 
-        for logline in self._api.build(self.buildargs, path=tmp_dir, dockerfile=dockerfile_path, rm=True):
+        self.send_response(self._buildargs)
+
+        for logline in self._api.build(buildargs=self._buildargs, path=tmp_dir, dockerfile=dockerfile_path, rm=True):
             loginfo = json.loads(logline.decode())
             if 'error' in loginfo:
-                self.send_response(f'error:{loginfo["error"]}\n')
+                self.send_response(f'\nerror: {loginfo["error"]}\n')
                 return
             if 'aux' in loginfo:
                 self._sha1 = loginfo['aux']['ID']
