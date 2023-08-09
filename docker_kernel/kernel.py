@@ -41,6 +41,7 @@ class DockerKernel(Kernel):
         super().__init__(**kwargs)
         self._api = docker.APIClient(base_url='unix://var/run/docker.sock')
         self._sha1: str | None = None
+        self._buildargs = {}
         self._payload = []
         self._build_stage_indices: dict[int, tuple[str, str | None]] = {}
         self._latest_index: int | None = None
@@ -245,10 +246,12 @@ class DockerKernel(Kernel):
         build_code = self.create_build_stage(code)
         dockerfile_path = create_dockerfile(build_code, tmp_dir)
 
-        for logline in self._api.build(path=tmp_dir,dockerfile=dockerfile_path, rm=True):
+        self.send_response(self._buildargs)
+
+        for logline in self._api.build(buildargs=self._buildargs, path=tmp_dir, dockerfile=dockerfile_path, rm=True):
             loginfo = json.loads(logline.decode())
             if 'error' in loginfo:
-                self.send_response(f'error:{loginfo["error"]}\n')
+                self.send_response(f'\nerror: {loginfo["error"]}\n')
                 return
             if 'aux' in loginfo:
                 self._sha1 = loginfo['aux']['ID']
@@ -296,3 +299,6 @@ class DockerKernel(Kernel):
             self.send_response(f"Note: Build stage {image_alias} is not known.")
             self.send_response(f"Attempting to use image with name {image_alias}...")
         return f"{code_segments[0]} --from={base_image_id} {' '.join(code_segments[2:])}"
+    
+    def set_buildargs(self, **buildarguments: dict[str, str]):
+        self._buildargs.update(buildarguments)
