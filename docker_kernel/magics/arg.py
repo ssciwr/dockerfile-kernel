@@ -30,6 +30,6 @@ class Arg(Magic):
 
         for arg in self._args:
             name, value = arg.split("=")
-            self._kernel.set_buildargs(**dict(name = value))
+            self._kernel.set_buildargs(**{name: value})
             self._kernel.send_response(f"Build argument '{name}' set to '{value}'\n")
 

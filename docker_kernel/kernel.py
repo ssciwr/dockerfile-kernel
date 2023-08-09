@@ -246,7 +246,7 @@ class DockerKernel(Kernel):
         build_code = self.create_build_stage(code)
         dockerfile_path = create_dockerfile(build_code, tmp_dir)
 
-        self.send_response(self._buildargs)
+        self.send_response(str(self._buildargs))
 
         for logline in self._api.build(buildargs=self._buildargs, path=tmp_dir, dockerfile=dockerfile_path, rm=True):
             loginfo = json.loads(logline.decode())
@@ -263,7 +263,7 @@ class DockerKernel(Kernel):
         self._save_build_stage(code, self._sha1)
 
     def _save_build_stage(self, code, image_id):
-        if not code.lower().strip().startswith('from'):
+        if not code.lower().strip().startswith(("from", "arg", "#")):
             _, alias = self._build_stage_indices[self._latest_index]
             self._build_stage_indices[self._latest_index] = (image_id, alias)
             return
