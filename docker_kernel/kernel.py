@@ -246,8 +246,6 @@ class DockerKernel(Kernel):
         build_code = self.create_build_stage(code)
         dockerfile_path = create_dockerfile(build_code, tmp_dir)
 
-        self.send_response(str(self._buildargs))
-
         for logline in self._api.build(buildargs=self._buildargs, path=tmp_dir, dockerfile=dockerfile_path, rm=True):
             loginfo = json.loads(logline.decode())
             if 'error' in loginfo:
@@ -300,5 +298,16 @@ class DockerKernel(Kernel):
             self.send_response(f"Attempting to use image with name {image_alias}...")
         return f"{code_segments[0]} --from={base_image_id} {' '.join(code_segments[2:])}"
     
-    def set_buildargs(self, **buildarguments: dict[str, str]):
-        self._buildargs.update(buildarguments)
+    def set_buildargs(self, remove: bool, **buildarguments: dict[str, str]):
+        if not remove:
+            self._buildargs.update(buildarguments)
+            return True
+        else: 
+            key = next(iter(buildarguments))
+            if key in buildarguments:
+                self._buildargs.pop(key)
+                return True
+            return False
+
+    def get_buildargs(self) -> dict[str, str]:
+        return self._buildargs
