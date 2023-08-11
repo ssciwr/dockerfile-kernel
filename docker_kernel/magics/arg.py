@@ -57,20 +57,29 @@ class Arg(Magic):
 
             for arg in self._args:
                 name, value = arg.split("=")
-                self._kernel.set_buildargs(False, **{name: value})
+                self._kernel.buildargs = {name: value}
                 self._kernel.send_response(f"Build argument '{name}' set to '{value}'\n")
             self._list_argument("all")
 
-    def _remove_argument(self, arg):
-        if arg == "all":
-            self._kernel.reset_buildargs()
+    def _remove_argument(self, *names):
+        if names[0] == "all":
+            self._kernel.remove_buildargs(True)
             self._kernel.send_response("All build arguments removed\n")  
-        elif self._kernel.set_buildargs(True, **{arg: None}):
-            self._kernel.send_response(f"Build argument '{arg}' removed\n")
+        else:
+            response = ""
+            for name in names:
+                if name in self._kernel.buildargs.keys():
+                    response = response + f"Build argument '{name}' removed\n"
+                    continue
+                else:
+                    self._kernel.send_response(f"'{name}' not in current build arguments")
+                    return
+            self._kernel.remove_buildargs(False, *names)
+            self._kernel.send_response(response)
 
-    def _list_argument(self, arg):
-        buildargs = self._kernel.get_buildargs()
-        if arg == "all":
+    def _list_argument(self, *names):
+        buildargs = self._kernel.buildargs
+        if names[0] == "all":
             if not buildargs:
                 self._kernel.send_response("No current build arguments")
             else:
@@ -78,4 +87,11 @@ class Arg(Magic):
                 for b in buildargs.keys():
                     self._kernel.send_response(f"\t{b}={buildargs[b]}\n")
         else:
-            self._kernel.send_response(f"Current build argument:\n{arg}={buildargs[arg]}\n")
+            response = "Current build arguments:\n"
+            for name in names:
+                if name in buildargs.keys():
+                    response = response + f"\t{name}={buildargs[name]}\n"
+                else:
+                    self._kernel.send_response(f"'{name}' not in current build arguments")
+                    return
+            self._kernel.send_response(response)

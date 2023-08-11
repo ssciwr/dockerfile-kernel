@@ -298,19 +298,18 @@ class DockerKernel(Kernel):
             self.send_response(f"Attempting to use image with name {image_alias}...")
         return f"{code_segments[0]} --from={base_image_id} {' '.join(code_segments[2:])}"
     
-    def set_buildargs(self, remove: bool, **buildarguments: dict[str, str]):
-        if not remove:
-            self._buildargs.update(buildarguments)
-            return True
-        else: 
-            key = next(iter(buildarguments))
-            if key in buildarguments:
-                self._buildargs.pop(key)
-                return True
-            return False
-    
-    def get_buildargs(self) -> dict[str, str]:
+    @property
+    def buildargs(self) -> dict[str, str]:
         return self._buildargs
     
-    def reset_buildargs(self):
-        self._buildargs = {}
+    @buildargs.setter
+    def buildargs(self, buildargs:dict[str, str]):  
+            self._buildargs.update(buildargs)
+    
+    def remove_buildargs(self, all: bool=False, *names):
+        if all:
+            self._buildargs = {}
+        else:
+            self.send_response(names)
+            for name in names:
+                self.buildargs.pop(name)
