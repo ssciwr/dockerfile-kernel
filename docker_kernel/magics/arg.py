@@ -13,7 +13,7 @@ class Arg(Magic):
 
     @staticmethod
     def REQUIRED_ARGS() -> tuple[list[str], int]:
-        return (["Command"], 1)
+        return ([], 0)
     
     @staticmethod
     def ARGS_RULES() -> dict[int, tuple[Callable[[str], bool], str]]:
@@ -24,27 +24,58 @@ class Arg(Magic):
         return         {
             "remove": {
                 "short": "rm",
-                "default": None,
+                "default": "all",
                 "desc": "Remove the build argument specified by name"
+            },
+            "list": {
+                "short": "ls",
+                "default": "all",
+                "desc": "List the build argument(s) specified by name"
             }
         }
     
     def _execute_magic(self) -> None:
-        if self._args[0].lower()=="list" or self._args[0].lower()=="ls":
-            self._kernel.send_response(f"Current build arguments:\n{str(self._kernel._buildargs)}")
-        elif "remove" in self._args:
-            key = self._args[1]
-            if self._kernel.set_buildargs(True, **{key: None}):
-                self._kernel.send_response(f"Build argument '{key}' removed\n")
-                self._kernel.send_response(f"Current build arguments:\n{str(self._kernel.get_buildargs())}")
-        else:
+
+        for short in self._shorts.keys():
+            match short.lower():
+                case "rm":
+                    self._remove_argument(self._shorts[short])
+                case "ls":
+                    self._list_argument(self._shorts[short])
+
+        for flag in self._flags.keys():
+            match flag.lower():
+                case "remove":
+                    self._remove_argument(self._flags[flag])
+                case "list":
+                    self._list_argument(self._flags[flag])
+
+        if self._args:
             for arg in self._args:
                 if not re.match("^[^\s]+=[^\s]+$", arg):
-                    raise MagicError(f"'{arg}' does not match input format, expected format: 'foo=bar'")
+                    raise MagicError(f"'{arg}' does not match input format, expected format: '<name>=<value>'")
 
             for arg in self._args:
                 name, value = arg.split("=")
                 self._kernel.set_buildargs(False, **{name: value})
                 self._kernel.send_response(f"Build argument '{name}' set to '{value}'\n")
-                self._kernel.send_response(f"Current build arguments:\n{str(self._kernel.get_buildargs())}")
+            self._list_argument("all")
 
+    def _remove_argument(self, arg):
+        if arg == "all":
+            self._kernel.reset_buildargs()
+            self._kernel.send_response("All build arguments removed\n")  
+        elif self._kernel.set_buildargs(True, **{arg: None}):
+            self._kernel.send_response(f"Build argument '{arg}' removed\n")
+
+    def _list_argument(self, arg):
+        buildargs = self._kernel.get_buildargs()
+        if arg == "all":
+            if not buildargs:
+                self._kernel.send_response("No current build arguments")
+            else:
+                self._kernel.send_response("Current build arguments:\n")
+                for b in buildargs.keys():
+                    self._kernel.send_response(f"\t{b}={buildargs[b]}\n")
+        else:
+            self._kernel.send_response(f"Current build argument:\n{arg}={buildargs[arg]}\n")

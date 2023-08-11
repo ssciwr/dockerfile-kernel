@@ -308,6 +308,9 @@ class DockerKernel(Kernel):
                 self._buildargs.pop(key)
                 return True
             return False
-
+    
     def get_buildargs(self) -> dict[str, str]:
         return self._buildargs
+    
+    def reset_buildargs(self):
+        self._buildargs = {}
