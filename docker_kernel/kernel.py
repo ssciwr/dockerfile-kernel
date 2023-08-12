@@ -314,7 +314,9 @@ class DockerKernel(Kernel):
         Parameters
         ----------
         bool=False: str
+            If True remove all current build arguments, by default False
         *names: str
+            Names of the bbuild arguments to be removed
 
         Returns
         -------
