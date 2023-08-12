@@ -300,13 +300,26 @@ class DockerKernel(Kernel):
     
     @property
     def buildargs(self) -> dict[str, str]:
+        """Getter for current build arguments"""
         return self._buildargs
     
     @buildargs.setter
-    def buildargs(self, buildargs:dict[str, str]):  
-            self._buildargs.update(buildargs)
+    def buildargs(self, buildargs: dict[str, str]):
+        """Getter for current build arguments"""  
+        self._buildargs.update(buildargs)
     
-    def remove_buildargs(self, all: bool=False, *names):
+    def remove_buildargs(self, all: bool=False, *names: str):
+        """Remove current build arguments specified by name
+
+        Parameters
+        ----------
+        bool=False: str
+        *names: str
+
+        Returns
+        -------
+        None
+        """
         if all:
             self._buildargs = {}
         else:
