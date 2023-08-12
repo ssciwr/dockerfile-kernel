@@ -4,6 +4,7 @@ import tempfile
 import docker
 import json
 import os
+from typing import Tuple
 from ipykernel.kernelbase import Kernel
 
 from ipylab import JupyterFrontEnd
@@ -88,7 +89,7 @@ class DockerKernel(Kernel):
         
         ####################
         # Prepare kernel for code execution
-        self._payload = []
+        self.reset_payload()
         self._frontend = self._frontend if self._frontend is not None else FrontendInteraction(JupyterFrontEnd())
 
         ####################
@@ -142,17 +143,24 @@ class DockerKernel(Kernel):
         stream = self.iopub_socket if stream is None else stream
         super().send_response(stream, msg_or_type, {"name": content_name, "text": content_text})
 
-    def set_payload(self, source: str, text: str, replace: bool):
+    @property
+    def payload(self) -> list[dict[str, str]]:
+        return self._payload
+    
+    @payload.setter
+    def payload(self, payload: tuple[str, str, bool]):
         """ Trigger frontend action via payloads. 
 
         Parameters
         ----------
-        source: str
-            action type, e.g. *'set_next_input'* to create a new cell
-        text: str
-            text contents of the cell to create
-        replace: bool
-            If true, replace the current cell in document UIs instead of inserting a cell. Ignored in console UIs.
+        Tuple(
+            source: str,
+                action type, e.g. *'set_next_input'* to create a new cell
+            text: str,
+                text contents of the cell to create
+            replace: bool
+                If true, replace the current cell in document UIs instead of inserting a cell. Ignored in console UIs.
+            )
 
         Returns
         -------
@@ -162,10 +170,14 @@ class DockerKernel(Kernel):
 
         """
         self._payload = [{
-            "source": source,
-            "text": text,
-            "replace": replace,
+            "source": payload[0],
+            "text": payload[1],
+            "replace": payload[2],
         }]
+
+    def reset_payload(self):
+        """Reset payloads"""
+        self._payload = []
 
     def do_complete(self, code: str, cursor_pos: int):
         """Provide code completion
