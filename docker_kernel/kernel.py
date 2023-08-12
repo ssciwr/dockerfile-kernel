@@ -10,7 +10,7 @@ from ipylab import JupyterFrontEnd
 
 from .magics.magic import Magic
 from .utils.notebook import get_cursor_frame, get_cursor_words, get_line_start
-from .utils.filesystem import create_dockerfile, remove_tmp_dir,copy_files
+from .utils.filesystem import create_dockerfile, copy_files, empty_dir
 from .magics.helper.errors import MagicError
 from .frontend.interaction import FrontendInteraction
 from docker.errors import APIError
@@ -45,13 +45,17 @@ class DockerKernel(Kernel):
         self._build_stage_indices: dict[int, tuple[str, str | None]] = {}
         self._latest_index: int | None = None
         self._build_stage_aliases = {}
-        self._build_context_dir: str = os.getcwd() # directory the kernel was started in
         self._frontend = None
         self._tmp_dir = tempfile.TemporaryDirectory()
-        copy_files(self._build_context_dir, self._tmp_dir.name)
+        self._build_context_dir: str = os.getcwd()
+        self.change_build_context_directory(self._build_context_dir)
 
     def __del__(self):
-        remove_tmp_dir(self._tmp_dir)
+        try:
+            self._tmp_dir.cleanup()
+            self.send_response("Temporary directory removed")
+        except Exception as e:
+            self.send_response(str(e))
 
     @property
     def kernel_info(self):
@@ -296,3 +300,20 @@ class DockerKernel(Kernel):
             self.send_response(f"Note: Build stage {image_alias} is not known.")
             self.send_response(f"Attempting to use image with name {image_alias}...")
         return f"{code_segments[0]} --from={base_image_id} {' '.join(code_segments[2:])}"
+
+    def change_build_context_directory(self, source_dir: str):
+        self._build_context_dir = source_dir
+
+        empty_response = empty_dir(self._tmp_dir.name)
+        if empty_response:
+            self.send_response("Temporary directory emptied\n")
+        else:
+            self.send_response(str(empty_response))
+            return
+        
+        copy_response = copy_files(self._build_context_dir, self._tmp_dir.name)
+        if copy_response:
+            self.send_response("Build context changed\n")
+        else:
+            self.send_response(str(copy_response))
+            return 

@@ -1,5 +1,4 @@
 import os
-import tempfile
 import shutil
 
 def create_dockerfile(code: str, directory: str, filename="Dockerfile"):
@@ -8,14 +7,22 @@ def create_dockerfile(code: str, directory: str, filename="Dockerfile"):
         dockerfile.write(code)
     return dockerfile_path
 
-
 def copy_files(src: str, dest: str):
     try:
         shutil.copytree(src, dest, dirs_exist_ok=True)
+        return True
     except shutil.Error as e:
-        self.send_response(str(e))
-def remove_tmp_dir(tmp_dir: tempfile.TemporaryDirectory):
+        return e
+
+def empty_dir(dir_path: str):
     try:
-        tmp_dir.cleanup()
-    except Exception as e:
-        self.send_response(str(e))
+        contents = os.listdir(dir_path)
+        for item in contents:
+            item_path = os.path.join(dir_path, item)
+            if os.path.isfile(item):
+                os.remove(item_path)
+            elif os.path.isdir(item_path):
+                shutil.rmtree(item_path)
+        return True
+    except FileNotFoundError as e:
+        return e
