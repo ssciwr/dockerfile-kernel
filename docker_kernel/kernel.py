@@ -112,15 +112,9 @@ class DockerKernel(Kernel):
 
         ####################
         # Docker execution
-        try:
             self.build_image(code)
             # self.send_response(f"temp dir:{self._tmp_dir.name}\n")
             return {'status': 'ok', 'execution_count': self.execution_count, 'payload': self._payload, 'user_expression': {}}
-        except APIError as e:
-            if e.explanation is not None:
-                self.send_response(str(e.explanation))
-            else:
-                self.send_response(str(e))
 
     def create_build_stage(self, code):
         """
@@ -258,19 +252,25 @@ class DockerKernel(Kernel):
         build_code = self.create_build_stage(code)
         dockerfile_path = create_dockerfile(build_code, tmp_dir)
 
-        for logline in self._api.build(buildargs=self._buildargs, path=tmp_dir, dockerfile=dockerfile_path, rm=True):
-            loginfo = json.loads(logline.decode())
-            if 'error' in loginfo:
-                self.send_response(f'\nerror: {loginfo["error"]}\n')
-                return
-            if 'aux' in loginfo:
-                self._sha1 = loginfo['aux']['ID']
-            if 'stream' in loginfo:
-                log = loginfo['stream']
-                if log.strip() != "":
-                    self.send_response(log)
+        try:
+            for logline in self._api.build(buildargs=self._buildargs, path=tmp_dir, dockerfile=dockerfile_path, rm=True):
+                loginfo = json.loads(logline.decode())
+                if 'error' in loginfo:
+                    self.send_response(f'\nerror: {loginfo["error"]}\n')
+                    return
+                if 'aux' in loginfo:
+                    self._sha1 = loginfo['aux']['ID']
+                if 'stream' in loginfo:
+                    log = loginfo['stream']
+                    if log.strip() != "":
+                        self.send_response(log)
+        except APIError as e:
+            if e.explanation is not None:
+                self.send_response(str(e.explanation))
+        else:
+            self.send_response(str(e))
 
-        self._save_build_stage(code, self._sha1)
+            self._save_build_stage(code, self._sha1)
 
     def _save_build_stage(self, code, image_id):
         if not code.lower().strip().startswith(("from", "arg", "#")):
