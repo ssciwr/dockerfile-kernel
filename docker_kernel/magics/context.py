@@ -30,5 +30,4 @@ class Context(Magic):
     
     def _execute_magic(self) -> None:
         directory_path = self._args[0]
-        self._kernel._build_context_dir = directory_path
-        self._kernel.send_response(f"Changed directory for build context to '{directory_path}'")
+        self._kernel.change_build_context_directory(directory_path)
