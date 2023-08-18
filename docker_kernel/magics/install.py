@@ -1,4 +1,4 @@
-from typing import Callable
+from typing import Callable, Tuple
 
 from .magic import Magic
 from .helper.types import FlagDict
@@ -37,6 +37,6 @@ class Install(Magic):
                 self._kernel.send_response("Package manager not available (currently available: apt(-get), conda, npm, pip)")
         
         if code is not None:
-            self._kernel.set_payload("set_next_input", code.format(newLine = "&&\n\t "), True)
+            self._kernel.payload = ("set_next_input", code.format(newLine = "&&\n\t "), True)
             code = self._kernel.create_build_stage(code.format(newLine = "&& "))
             self._kernel.build_image(code)

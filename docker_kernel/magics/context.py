@@ -8,8 +8,8 @@ from .helper.types import FlagDict
 
 class Context(Magic):
     """Change the directory used as a building context """
-    def __init__(self, kernle, *args, **flags):
-        super().__init__(kernle, *args, **flags)
+    def __init__(self, kernel, *args, **flags):
+        super().__init__(kernel, *args, **flags)
 
     @staticmethod
     def REQUIRED_ARGS() -> tuple[list[str], int]:
@@ -20,7 +20,7 @@ class Context(Magic):
         exists: Callable[[str], bool] = lambda path: os.path.exists(path)
         is_directory: Callable[[str], bool] = lambda path: os.path.isdir(path)
         return {
-            0: [(exists, "Specified directory doesn't extist"),
+            0: [(exists, "Specified directory doesn't exist"),
                 (is_directory, "Specified path is no directory")]
         }
     

@@ -52,6 +52,6 @@ class Tag(Magic):
                 tag = None
             else:
                 raise MagicError("Error parsing arguments:\n" + 
-                                f"\t\"{target_image}\" is not valid: invalid reference format")
+                                f"\t\"{target_image}\" is not valid: Invalid reference format")
 
         self._kernel.tag_image(name, tag=tag)
