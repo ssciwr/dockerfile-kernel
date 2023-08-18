@@ -11,7 +11,7 @@ from ipylab import JupyterFrontEnd
 
 from .magics.magic import Magic
 from .utils.notebook import get_cursor_frame, get_cursor_words, get_line_start
-from .utils.filesystem import create_dockerfile, copy_files, empty_dir
+from .utils.filesystem import create_dockerfile, copy_files, empty_dir, get_dir_size
 from .magics.helper.errors import MagicError
 from .frontend.interaction import FrontendInteraction
 from docker.errors import APIError
@@ -49,7 +49,11 @@ class DockerKernel(Kernel):
         self._build_stage_aliases = {}
         self._frontend = None
         self._tmp_dir = tempfile.TemporaryDirectory()
-        self._build_context_dir: str = os.getcwd()
+        self._build_context_dir: str | None = None
+        self._build_context_warning_shown = False
+        # 100MB in bytes
+        if get_dir_size(os.getcwd()) < 100_000_000:
+            self._build_context_dir: str | None = os.getcwd()
         self.change_build_context_directory(self._build_context_dir)
 
     def __del__(self):
@@ -113,12 +117,16 @@ class DockerKernel(Kernel):
         frontend_interacted = self._frontend.handle_code(code)
         if frontend_interacted:
             return {'status': 'error', "ename": "FrontEndExecuted", "evalue": "", "traceback": []}
+        # Show build context warning once
+        if self._build_context_dir is None and not self._build_context_warning_shown:
+            self._frontend.build_context_warning()
+            self._build_context_warning_shown = True
 
         ####################
         # Docker execution
-            self.build_image(code)
-            # self.send_response(f"temp dir:{self._tmp_dir.name}\n")
-            return {'status': 'ok', 'execution_count': self.execution_count, 'payload': self._payload, 'user_expression': {}}
+        self.build_image(code)
+        # self.send_response(f"temp dir:{self._tmp_dir.name}\n")
+        return {'status': 'ok', 'execution_count': self.execution_count, 'payload': self._payload, 'user_expression': {}}
 
     def create_build_stage(self, code):
         """
@@ -272,8 +280,6 @@ class DockerKernel(Kernel):
             if e.explanation is not None:
                 self.send_response(str(e.explanation))
         else:
-            self.send_response(str(e))
-
             self._save_build_stage(code, self._sha1)
 
     def _save_build_stage(self, code, image_id):
@@ -355,6 +361,10 @@ class DockerKernel(Kernel):
             self.send_response(str(empty_response))
             return
         
+        # Leave temp directory empty if no build context is available
+        # This is used primarily when the inital directory is too large
+        if not self._build_context_dir:
+            return
         copy_response = copy_files(self._build_context_dir, self._tmp_dir.name)
         if copy_response:
             self.send_response("Build context changed\n")

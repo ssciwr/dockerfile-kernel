@@ -14,3 +14,6 @@ class FrontendInteraction():
 
     def _execute_helper(self, hook):
         self.app.commands.execute("helper:open", {"hook": hook})
+    
+    def build_context_warning(self):
+        return self.app.commands.execute("docker:context_warning")
