@@ -1,5 +1,6 @@
 import os
 import shutil
+from typing import Callable, Iterable
 
 def create_dockerfile(code: str, directory: str, filename="Dockerfile"):
     dockerfile_path = os.path.join(directory, filename)
@@ -7,9 +8,9 @@ def create_dockerfile(code: str, directory: str, filename="Dockerfile"):
         dockerfile.write(code)
     return dockerfile_path
 
-def copy_files(src: str, dest: str):
+def copy_files(src: str, dest: str, ignore: Callable[[str, list[str]], Iterable[str]] | None = None):
     try:
-        shutil.copytree(src, dest, dirs_exist_ok=True)
+        shutil.copytree(src, dest, dirs_exist_ok=True, ignore=ignore)
         return True
     except shutil.Error as e:
         return e
