@@ -280,6 +280,7 @@ class DockerKernel(Kernel):
             if e.explanation is not None:
                 self.send_response(str(e.explanation))
         else:
+            self.send_response(str(e))
             self._save_build_stage(code, self._sha1)
 
     def _save_build_stage(self, code, image_id):
