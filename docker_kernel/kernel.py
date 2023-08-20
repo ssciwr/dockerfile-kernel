@@ -116,9 +116,9 @@ class DockerKernel(Kernel):
 
         ####################
         # Docker execution
-            self.build_image(code)
-            # self.send_response(f"temp dir:{self._tmp_dir.name}\n")
-            return {'status': 'ok', 'execution_count': self.execution_count, 'payload': self._payload, 'user_expression': {}}
+        self.build_image(code)
+        # self.send_response(f"temp dir:{self._tmp_dir.name}\n")
+        return {'status': 'ok', 'execution_count': self.execution_count, 'payload': self._payload, 'user_expression': {}}
 
     def create_build_stage(self, code):
         """
@@ -271,10 +271,9 @@ class DockerKernel(Kernel):
         except APIError as e:
             if e.explanation is not None:
                 self.send_response(str(e.explanation))
-        else:
-            self.send_response(str(e))
-
-            self._save_build_stage(code, self._sha1)
+            else:
+                self.send_response(str(e))
+        self._save_build_stage(code, self._sha1)
 
     def _save_build_stage(self, code, image_id):
         if not code.lower().strip().startswith(("from", "arg", "#")):
