@@ -13,7 +13,20 @@ author = 'Dominic Kempf, Marco Lorenz, Shuangshuang Li, Marvin Weitz'
 # -- Docstring configuration --------------------------------------------------
 import os
 import sys
+import commonmark
+
 sys.path.insert(0, os.path.abspath('..'))
+
+def docstring(app, what, name, obj, options, lines):
+    # https://stackoverflow.com/a/56428123/11785440
+    md  = '\n'.join(lines)
+    ast = commonmark.Parser().parse(md)
+    rst = commonmark.ReStructuredTextRenderer().render(ast)
+    lines.clear()
+    lines += rst.splitlines()
+
+def setup(app):
+    app.connect('autodoc-process-docstring', docstring)
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
