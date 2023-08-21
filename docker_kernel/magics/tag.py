@@ -7,7 +7,11 @@ from .helper.errors import MagicError
 from.helper.types import FlagDict
 
 class Tag(Magic):
-    """Save a docker image via a name and tag in the kernel for later access."""
+    """Save Docker image with a name and tag in the `kernel.DockerKernel`.
+    
+    #TODO: Add reference to `kernel.DockerKernel` for Sphinx
+    #TODO: Reference to Magic tutorial in Sphinx
+    """
     def __init__(self, kernle, *args, **flags):
         super().__init__(kernle, *args, **flags)
 
@@ -37,11 +41,6 @@ class Tag(Magic):
         }
     
     def _execute_magic(self) -> None:
-        """
-        usage:
-        %tag target_image[:tag]
-        """
-
         target_image = self._args[0]
         try:
             name, tag = target_image.split(":")

@@ -7,7 +7,10 @@ from .helper.errors import MagicError
 from .helper.types import FlagDict
 
 class Arg(Magic):
-    """Manipulate Build Arguments"""
+    """Manipulate Build Arguments
+    
+    #TODO: Reference to Magic tutorial in Sphinx
+    """
     def __init__(self, kernel, *args, **flags):
         super().__init__(kernel, *args, **flags)
 
@@ -35,7 +38,6 @@ class Arg(Magic):
         }
     
     def _execute_magic(self) -> None:
-
         for short in self._shorts.keys():
             match short.lower():
                 case "rm":
@@ -61,7 +63,14 @@ class Arg(Magic):
                 self._kernel.send_response(f"Build argument '{name}' set to '{value}'\n")
             self._list_argument("all")
 
-    def _remove_argument(self, *names):
+    def _remove_argument(self, *names: str):
+        """Remove *build arguments* from `DockerKernel`.
+
+        #TODO: Add reference to `DockerKernel` for Sphinx
+
+        Args:
+            *names (tuple[str]): The names of the *build arguments* to be removed.
+        """
         if names[0] == "all":
             self._kernel.remove_buildargs(True)
             self._kernel.send_response("All build arguments removed\n")  
@@ -77,7 +86,14 @@ class Arg(Magic):
             self._kernel.remove_buildargs(False, *names)
             self._kernel.send_response(response)
 
-    def _list_argument(self, *names):
+    def _list_argument(self, *names: str):
+        """List (specified) *build arguments* of `kernel.DockerKernel`.
+
+        #TODO: Add reference to `kernel.DockerKernel` for Sphinx
+
+        Args:
+            *names (tuple[str]): The names of the *build arguments* to be listed.
+        """
         buildargs = self._kernel.buildargs
         if names[0] == "all":
             if not buildargs:

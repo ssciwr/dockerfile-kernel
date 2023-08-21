@@ -7,7 +7,11 @@ from .helper.types import FlagDict
 
 
 class Context(Magic):
-    """Change the directory used as a building context """
+    """Change the directory used as *build context* by `kernel.DockerKernel`.
+    
+    #TODO: Add reference to `kernel.DockerKernel` for Sphinx
+    #TODO: Reference to Magic tutorial in Sphinx
+    """
     def __init__(self, kernel, *args, **flags):
         super().__init__(kernel, *args, **flags)
 
