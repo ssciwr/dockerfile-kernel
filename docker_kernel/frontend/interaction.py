@@ -1,10 +1,21 @@
 from ipylab import JupyterFrontEnd
 
 class FrontendInteraction():
+    """Handles frontend interactions triggered by the :py:class:`kernel.DockerKernel`."""
     def __init__(self, app: JupyterFrontEnd):
         self.app = app
     
     def handle_code(self, code: str):
+        """Entry method to be used in every code execution.
+
+        All subsequent functionality will be called from this method.
+
+        Args:
+            code (str): The user's code.
+
+        Returns:
+            bool: Indicates if further code should be executed by the :py:class:`kernel.DockerKernel`.
+        """
         if code.rstrip().endswith("?"):
             hook = code.split(" ")[-1].removesuffix("?")
             self._execute_helper(hook)
@@ -12,5 +23,12 @@ class FrontendInteraction():
         else:
             return False
 
-    def _execute_helper(self, hook):
+    def _execute_helper(self, hook:str):
+        """Executes the helper frontend.
+
+        #TODO: Refernce herlper frontend for Sphinx documentation
+
+        Args:
+            hook (str): _description_
+        """
         self.app.commands.execute("helper:open", {"hook": hook})
