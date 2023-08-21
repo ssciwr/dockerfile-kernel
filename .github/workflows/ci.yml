@@ -49,22 +49,19 @@ jobs:
     - name: Install ipylab
       run: python -m pip install ipylab
 
+    - name: Install nodejs
+      run: python -m pip install nodejs
+
     - name: Change to repository folder
       run: cd $GITHUB_WORKSPACE
 
     - name: Install Python package
       run: |
         python -m pip install -e .
-        python -m pip install -e ./docker_export
+        python -m pip install -e ./docker_extension
 
     - name: Install the kernel
       run: python docker_kernel/install.py
-              
-    - name: Install shell_extension
-      run: pip install shell_extension/dist/shell_extension-0.1.0-py3-none-any.whl
-
-    - name: Install import_extension
-      run: pip install import_extension/dist/import_extension-0.1.0-py3-none-any.whl
 
     - name: Run tests
       run: pytest

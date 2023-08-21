@@ -4,13 +4,14 @@ import tempfile
 import docker
 import json
 import os
+from typing import Tuple
 from ipykernel.kernelbase import Kernel
 
 from ipylab import JupyterFrontEnd
 
 from .magics.magic import Magic
 from .utils.notebook import get_cursor_frame, get_cursor_words, get_line_start
-from .utils.filesystem import create_dockerfile, remove_tmp_dir,copy_files
+from .utils.filesystem import create_dockerfile, copy_files, empty_dir
 from .magics.helper.errors import MagicError
 from .frontend.interaction import FrontendInteraction
 from docker.errors import APIError
@@ -42,17 +43,22 @@ class DockerKernel(Kernel):
         super().__init__(**kwargs)
         self._api = docker.APIClient(base_url='unix://var/run/docker.sock')
         self._sha1: str | None = None
+        self._buildargs = {}
         self._payload = []
         self._build_stage_indices: dict[int, tuple[str, str | None]] = {}
         self._latest_index: int | None = None
         self._build_stage_aliases = {}
-        self._build_context_dir: str = os.getcwd() # directory the kernel was started in
         self._frontend = None
         self._tmp_dir = tempfile.TemporaryDirectory()
-        copy_files(self._build_context_dir, self._tmp_dir.name)
+        self._build_context_dir: str = os.getcwd()
+        self.change_build_context_directory(self._build_context_dir)
 
     def __del__(self):
-        remove_tmp_dir(self._tmp_dir)
+        try:
+            self._tmp_dir.cleanup()
+            self.send_response("Temporary directory removed")
+        except Exception as e:
+            self.send_response(str(e))
 
     @property
     def kernel_info(self):
@@ -88,7 +94,7 @@ class DockerKernel(Kernel):
         
         ####################
         # Prepare kernel for code execution
-        self._payload = []
+        self.reset_payload()
         self._frontend = self._frontend if self._frontend is not None else FrontendInteraction(JupyterFrontEnd())
 
         ####################
@@ -111,14 +117,9 @@ class DockerKernel(Kernel):
 
         ####################
         # Docker execution
-        try:
-            self.build_image(code)
-            return {'status': 'ok', 'execution_count': self.execution_count, 'payload': self._payload, 'user_expression': {}}
-        except APIError as e:
-            if e.explanation is not None:
-                self.send_response(str(e.explanation))
-            else:
-                self.send_response(str(e))
+        self.build_image(code)
+        # self.send_response(f"temp dir:{self._tmp_dir.name}\n")
+        return {'status': 'ok', 'execution_count': self.execution_count, 'payload': self._payload, 'user_expression': {}}
 
     def create_build_stage(self, code):
         """
@@ -141,17 +142,24 @@ class DockerKernel(Kernel):
         stream = self.iopub_socket if stream is None else stream
         super().send_response(stream, msg_or_type, {"name": content_name, "text": content_text})
 
-    def set_payload(self, source: str, text: str, replace: bool):
+    @property
+    def payload(self) -> list[dict[str, str]]:
+        return self._payload
+
+    @payload.setter
+    def payload(self, payload: tuple[str, str, bool]):
         """ Trigger frontend action via payloads. 
 
         Parameters
         ----------
-        source: str
-            action type, e.g. *'set_next_input'* to create a new cell
-        text: str
-            text contents of the cell to create
-        replace: bool
-            If true, replace the current cell in document UIs instead of inserting a cell. Ignored in console UIs.
+        Tuple(
+            source: str,
+                action type, e.g. *'set_next_input'* to create a new cell
+            text: str,
+                text contents of the cell to create
+            replace: bool
+                If true, replace the current cell in document UIs instead of inserting a cell. Ignored in console UIs.
+            )
 
         Returns
         -------
@@ -161,10 +169,14 @@ class DockerKernel(Kernel):
 
         """
         self._payload = [{
-            "source": source,
-            "text": text,
-            "replace": replace,
+            "source": payload[0],
+            "text": payload[1],
+            "replace": payload[2],
         }]
+
+    def reset_payload(self):
+        """Reset payloads"""
+        self._payload = []
 
     def do_complete(self, code: str, cursor_pos: int):
         """Provide code completion
@@ -245,22 +257,27 @@ class DockerKernel(Kernel):
         build_code = self.create_build_stage(code)
         dockerfile_path = create_dockerfile(build_code, tmp_dir)
 
-        for logline in self._api.build(path=tmp_dir,dockerfile=dockerfile_path, rm=True):
-            loginfo = json.loads(logline.decode())
-            if 'error' in loginfo:
-                self.send_response(f'error:{loginfo["error"]}\n')
-                return
-            if 'aux' in loginfo:
-                self._sha1 = loginfo['aux']['ID']
-            if 'stream' in loginfo:
-                log = loginfo['stream']
-                if log.strip() != "":
-                    self.send_response(log)
-
+        try:
+            for logline in self._api.build(buildargs=self._buildargs, path=tmp_dir, dockerfile=dockerfile_path, rm=True):
+                loginfo = json.loads(logline.decode())
+                if 'error' in loginfo:
+                    self.send_response(f'\nerror: {loginfo["error"]}\n')
+                    return
+                if 'aux' in loginfo:
+                    self._sha1 = loginfo['aux']['ID']
+                if 'stream' in loginfo:
+                    log = loginfo['stream']
+                    if log.strip() != "":
+                        self.send_response(log)
+        except APIError as e:
+            if e.explanation is not None:
+                self.send_response(str(e.explanation))
+            else:
+                self.send_response(str(e))
         self._save_build_stage(code, self._sha1)
 
     def _save_build_stage(self, code, image_id):
-        if not code.lower().strip().startswith('from'):
+        if not code.lower().strip().startswith(("from", "arg", "#")):
             _, alias = self._build_stage_indices[self._latest_index]
             self._build_stage_indices[self._latest_index] = (image_id, alias)
             return
@@ -296,6 +313,55 @@ class DockerKernel(Kernel):
             self.send_response(f"Note: Build stage {image_alias} is not known.")
             self.send_response(f"Attempting to use image with name {image_alias}...")
         return f"{code_segments[0]} --from={base_image_id} {' '.join(code_segments[2:])}"
+
+    @property
+    def buildargs(self) -> dict[str, str]:
+        """Getter for current build arguments"""
+        return self._buildargs
+
+    @buildargs.setter
+    def buildargs(self, buildargs: dict[str, str]):
+        """Getter for current build arguments"""
+        self._buildargs.update(buildargs)
+
+    def remove_buildargs(self, all: bool=False, *names: str):
+        """Remove current build arguments specified by name
+
+        Parameters
+        ----------
+        bool=False: str
+            If True remove all current build arguments, by default False
+        *names: str
+            Names of the bbuild arguments to be removed
+
+        Returns
+        -------
+        None
+        """
+        if all:
+            self._buildargs = {}
+        else:
+            self.send_response(names)
+            for name in names:
+                self.buildargs.pop(name)
+
+    def change_build_context_directory(self, source_dir: str):
+        self._build_context_dir = source_dir
+
+        empty_response = empty_dir(self._tmp_dir.name)
+        if empty_response:
+            self.send_response("Temporary directory emptied\n")
+        else:
+            self.send_response(str(empty_response))
+            return
+
+        copy_response = copy_files(self._build_context_dir, self._tmp_dir.name)
+        if copy_response:
+            self.send_response("Build context changed\n")
+        else:
+            self.send_response(str(copy_response))
+
+            return
 
     def get_stages(self):
         table = PrettyTable(["index", "alias", "image id"])
