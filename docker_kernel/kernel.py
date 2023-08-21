@@ -14,6 +14,7 @@ from .utils.filesystem import create_dockerfile, remove_tmp_dir,copy_files
 from .magics.helper.errors import MagicError
 from .frontend.interaction import FrontendInteraction
 from docker.errors import APIError
+from prettytable import PrettyTable
 
 # The single source of version truth
 __version__ = "0.0.1"
@@ -112,7 +113,6 @@ class DockerKernel(Kernel):
         # Docker execution
         try:
             self.build_image(code)
-            # self.send_response(f"temp dir:{self._tmp_dir.name}\n")
             return {'status': 'ok', 'execution_count': self.execution_count, 'payload': self._payload, 'user_expression': {}}
         except APIError as e:
             if e.explanation is not None:
@@ -296,3 +296,9 @@ class DockerKernel(Kernel):
             self.send_response(f"Note: Build stage {image_alias} is not known.")
             self.send_response(f"Attempting to use image with name {image_alias}...")
         return f"{code_segments[0]} --from={base_image_id} {' '.join(code_segments[2:])}"
+
+    def get_stages(self):
+        table = PrettyTable(["index", "alias", "image id"])
+        for index, _rest in self._build_stage_indices.items():
+            table.add_row([index, _rest[1], _rest[0]])
+        return table

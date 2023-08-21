@@ -278,6 +278,8 @@ class Magic(ABC):
             except IndexError:
                 # Presence of required args already checked
                 break
+        if args == [] and self._args:
+            raise MagicError(f"No argument is needed")
 
     def _find_invalid_flags(self):
         """Raise error when current flags are not valid
