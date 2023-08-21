@@ -18,9 +18,20 @@ import commonmark
 sys.path.insert(0, os.path.abspath('..'))
 
 def docstring(app, what, name, obj, options, lines):
-    # https://stackoverflow.com/a/56428123/11785440
-    md  = '\n'.join(lines)
-    ast = commonmark.Parser().parse(md)
+    # https://stackoverflow.com/a/70174158
+    wrapped = []
+    literal = False
+    for line in lines:
+        if line.strip().startswith(r'```'):
+            literal = not literal
+        if not literal:
+            line = ' '.join(x.rstrip() for x in line.split('\n'))
+            indent = len(line) - len(line.lstrip())
+        if indent and not literal:
+            wrapped.append(' ' + line.lstrip())
+        else:
+            wrapped.append('\n' + line.strip())
+    ast = commonmark.Parser().parse(''.join(wrapped))
     rst = commonmark.ReStructuredTextRenderer().render(ast)
     lines.clear()
     lines += rst.splitlines()
