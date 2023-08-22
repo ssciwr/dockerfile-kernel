@@ -6,4 +6,4 @@ Welcome to Dockerfile Kernel's documentation!
    :caption: Contents:
 
    features/index
-   docstring/index
+   docstring
