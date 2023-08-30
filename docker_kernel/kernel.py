@@ -271,8 +271,10 @@ class DockerKernel(Kernel):
         except APIError as e:
             if e.explanation is not None:
                 self.send_response(str(e.explanation))
+                return
             else:
                 self.send_response(str(e))
+                return
         self._save_build_stage(code, self._sha1)
 
     def _save_build_stage(self, code, image_id):
