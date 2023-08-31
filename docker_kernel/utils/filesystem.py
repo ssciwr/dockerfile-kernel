@@ -1,5 +1,6 @@
 import os
 import shutil
+from typing import Callable, Iterable
 
 def create_dockerfile(code: str, directory: str, filename="Dockerfile"):
     """Create a *Dockerfile*
@@ -33,7 +34,7 @@ def copy_files(src: str, dest: str):
         bool | Error : Returns `True` if copying was successfull, else an Error.
     """
     try:
-        shutil.copytree(src, dest, dirs_exist_ok=True)
+        shutil.copytree(src, dest, dirs_exist_ok=True, ignore=ignore)
         return True
     except shutil.Error as e:
         return e

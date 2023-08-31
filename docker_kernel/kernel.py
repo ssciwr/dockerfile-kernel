@@ -12,6 +12,7 @@ from ipylab import JupyterFrontEnd
 from .magics.magic import Magic
 from .utils.notebook import get_cursor_frame, get_cursor_words, get_line_start
 from .utils.filesystem import create_dockerfile, copy_files, empty_dir
+from .utils.dockerignore import preporcessed_dockerignore, dockerignore
 from .magics.helper.errors import MagicError
 from .frontend.interaction import FrontendInteraction
 from docker.errors import APIError
@@ -391,7 +392,9 @@ class DockerKernel(Kernel):
             self.send_response(str(empty_response))
             return
         
-        copy_response = copy_files(self._build_context_dir, self._tmp_dir.name)
+        docker_ignore_rules = preporcessed_dockerignore(self._build_context_dir)
+        ignore_function = dockerignore(self._build_context_dir, docker_ignore_rules)
+        copy_response = copy_files(self._build_context_dir, self._tmp_dir.name, ignore=ignore_function)
         if copy_response:
             self.send_response("Build context changed\n")
         else:
