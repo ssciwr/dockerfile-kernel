@@ -16,18 +16,20 @@ from .helper.types import FlagDict
 
 
 class Magic(ABC):
-    """Abstract class as base for a magic command
+    """Abstract class as base for a *Magic* command
 
-    Parameters
-    ----------
-    kernel: DockerKernel
-        Current instance of the Docker kernel
-    *args: tuple[str]
-        Arguments passed with the magic command
-    **flags: dict[str, str]
-        Flags passed with the magic command
+    #TODO: Add reference to the Magics instructions in Sphinx
     """
     def __init__(self, kernel: DockerKernel, *args: str, **flags: str):
+        """_summary_
+
+        #TODO: Add references to DockerKernel for Sphinx
+
+        Args:
+            kernel (DockerKernel): Current instance of the `DockerKernel`
+            *args (tuple[str, ...]): Arguments passed to the *Magic* command
+            **flags (tuple[str, ...]): Flags passed to the *Magic* command
+        """
         self._kernel = kernel
         self._args = args
         self._find_invalid_args()
@@ -37,86 +39,49 @@ class Magic(ABC):
     @staticmethod
     @abstractmethod
     def REQUIRED_ARGS() -> tuple[list[str], int]:
-        """Defines how many arguments are expected and which are required.
+        """*(abstract, static)* Defines how many arguments are expected and how many of those are required.
 
-        The returned index is the first that is optional.
-
-        Example
-        -------
-        (["name", "path", "author"], 1)
+        Returns:
+            tuple[list[str], int]: A list of accepted arguments and a number that determines the first **optional** argument.
         """
         pass
  
     @staticmethod     
     @abstractmethod
     def ARGS_RULES() -> dict[int, list[tuple[Callable[[str], bool], str]]]:
-        """Conditions individual arguments must meet.
-        NOTE: Conditions based on relations between arguments must be handled inside `_execute_magic()`
-        NOTE: Conditions will be checked in order
-
-        The integer key specifies the index of the argument to be checked.
-        Indices not present will be ignored.
-        The tuple consists of
-            - a lambda expression that returns a bool
-            - a description of the condition for an error message
-
-        Example
-        -------
-        {
-            0: [(lambda arg: arg.startswith("%"),
-                "Argument must start with a '%'" )],
-            2: [(lambda arg: len(re.findall("some regex", arg)) != 0, 
-                "Wrong format"),
-                (lambda arg: len(re.findall("some regex", arg)) != 0, 
-                "Wrong format")]
-        }
+        """*(abstract, static)* Conditions individual arguments must meet.
+        
+        #TODO: Reference REQUIRED_ARGS for Sphinx
+        Returns:
+            dict[int, list[tuple[Callable[[str], bool], str]]]: Dictionary assigning a list of conditions and corresponding error message to an argument.
+                The argument is specified by its index in the `REQUIRED_ARGS` list.
         """
         pass
 
     @staticmethod
     @abstractmethod
     def VALID_OPTIONS() -> dict[str, FlagDict]:
-        """ Flags that won't throw an error.
-        
-        Define their name as key, shorthand (if available), default value and description
+        """*(abstract, static)* Flags that are accepted by the *Magic*.
 
-        Example
-        -------
-        {
-            "path": {
-                "short": "p",
-                "default": None,
-                "desc": "Path to image"
-            },
-            "workdir": {
-                "short": None,
-                "default": None,
-                "desc": "Directory to execute terminal in"
-            }
-        }
+        #TODO: Rename this to VALID_FLAGS
+        #TODO: Reference FlagDict for Sphinx
+
+        Returns:
+            dict[str, FlagDict]: Assigns each flag a `FlagDict`
         """
         pass
 
     @staticmethod
     def detect_magic(code: str):
-        """Parse magics, arguments and flags from the cell code.
+        """*(static)* Parse *Magics*, *arguments* and *flags* from the cell code.
 
-        Parameters
-        ----------
-        code: str
-            Cell input
+        Args:
+            code (str): The user's code.
 
-        Returns
-        -------
-        tuple(str | None, tuple[str] | None, dict[str, str] | None)
-            Name of the magic, args and flags.
-            In kwargs: Normal flags start with a hyphen, shorthand flags omit it.
-
-            Null for all if magic not known.
-
-        Raises
-        ------
-        MagicError
+        #TODO: Add refernce to Magic for Sphinx
+        Returns:
+            tuple(Magic, tuple[str], dict[str, str]) | tuple(None, None, None): The *Magic* found in the code with all its *args* and *flags* as well as the flags values.
+                Or `None` for all if no *Magic* was found.
         """
         # Remove multi-/ trailing / leading spaces
         code = re.sub(' +', ' ', code).strip()
@@ -130,8 +95,8 @@ class Magic(ABC):
             return None, None, None
         
         # Separate args and flags
-        args = ()
-        flags = {}
+        args: tuple[str] = ()
+        flags: dict[str, str] = {}
         c, n = itertools.tee(arguments)
         next(n, None) # two iterators with one ahead of the other
         it = iter(zip_longest(c, n))
@@ -145,28 +110,31 @@ class Magic(ABC):
         return magic_class, args, flags
 
     def call_magic(self) -> None:
+        """Call the magic's logic itself."""
         self._execute_magic()
 
     @abstractmethod
     def _execute_magic(self) -> None:
+        """*(abstract)* Execute the magic's logic."""
         pass
 
     @staticmethod
     def _get_magic(name: str) -> Type[Magic] | None:
-        """ Get Magic specified by name
+        """*(static)* Get *Magic* via its name.
 
-        Parameters
-        ----------
-        name: str
-            Name of Magic
+        #TODO: Change this so that is is less confusing why a % must be present in the name
 
-        Returns
-        -------
-        Magic | None
+        Args:
+            name (str): Name of the *Magic*.
+    
+        #TODO: Add refernce to MagicError for Sphinx
+            
+        Raises:
+            MagicError: No *Magic* found for *name*.
 
-        Raises
-        ------
-        MagicError
+        #TODO: Add refernce to Magic for Sphinx 
+        Returns:
+            Type[Magic] | None: *Magic* found for *name*. Or `None` if potential name didn't start with a %.
         """
         # Magic commands must start with %
         if not name.startswith("%"):
@@ -177,26 +145,33 @@ class Magic(ABC):
             if magic.__name__.lower() == name.removeprefix("%").lower():
                 return magic
         
-        # No magic found but indicated by leading &
+        # No magic found but indicated by leading %
         raise MagicError(f"No magic named {name.removeprefix('%')}")
     
     @classmethod
     @property
-    # NOTE: Works, but is supposed to be removed: https://docs.python.org/3.11/library/functions.html#classmethod
+    # NOTE: Classmethod wrapping works, but is supposed to be removed: https://docs.python.org/3.11/library/functions.html#classmethod
     def magics_names(cls) -> list[str]:
-        """List all magic names available
+        """*(classmethod)* List names of all *Magics* available.
 
-        NOTE: The magics must be run once (e.g. via __init__.py) to be listed here
-
-        Returns
-        -------
-        list[str]
+        Returns:
+            list[str]: Names of all *Magics* available.
         """
-        # Magic commands must start with %
         return [m.__name__.lower() for m in Magic.__subclasses__()]
 
     @staticmethod
     def do_complete(code: str, cursor_pos: int) -> list[str]:
+        """*(static)* Provide *Magic* specific code completion for the `kernel.do_complete` method.
+
+        #TODO: Add kernel.do_complete reference for Sphinx
+
+        Args:
+            code (str): The user's code.
+            cursor_pos (int): The cursor's position in *code*. This is where the completion is requested.
+
+        Returns:
+            list[str]: Code completion words and phrases.
+        """
         segments = code.split(" ")
         first_word = get_first_word(code)
     
@@ -236,15 +211,10 @@ class Magic(ABC):
 
     @staticmethod
     def _categorize_flags(**all_flags: str) -> tuple[dict[str, str], dict[str, str]]:
-        """Separates shorthand flags from normal flags
+        """*(static)* Separate *shorthand flags* and normal *flags*.
 
-        Parameters
-        ----------
-        flags: dict[str, str]
-
-        Returns
-        -------
-        tuple[shorts: dict[str, str], flags: dict[str, str]]
+        Returns:
+            tuple[dict[str, str], dict[str, str]]: The *shorthand flags* and normal *flags* used as well as wach of their values.
         """
         flags: dict[str, str] = {}
         shorts: dict[str, str] = {}
@@ -256,11 +226,13 @@ class Magic(ABC):
         return shorts, flags
     
     def _find_invalid_args(self):
-        """Raise error when current arguments are not valid.
+        """Raise error when current *arguments* are not valid.
 
-        Raises
-        ------
-        MagicError
+        #TODO: Use more granular Errors that inherit MagicError
+
+        Raises:
+            MagicError: Required *argument* is missing.
+            MagicError: An *argument's* value isn't valid
         """
         args, first_optional = self.REQUIRED_ARGS()
 
@@ -280,11 +252,18 @@ class Magic(ABC):
                 break
 
     def _find_invalid_flags(self):
-        """Raise error when current flags are not valid
+        """Raise error when a *flag* is not valid.
 
-        Raises
-        ------
-        MagicError
+        #TODO: Add case where duplicate flags are used (both normal or both short)
+        #TODO: Use more granular Errors that inherit MagicError
+        #TODO: Add refernce to MagicError for Sphinx
+
+        Raises:
+            MagicError: The *flag* is not known.
+            MagicError: No vlaue was given for *flag*
+            MagicError: The *shorthand flag* is not known
+            MagicError: No vlaue was given for *shorthand flag*
+            MagicError: Both *flag* and *shorthand flag* were passed.
         """
         options: dict[str, FlagDict] = self.VALID_OPTIONS()
         flags = list(options.keys())
@@ -307,35 +286,32 @@ class Magic(ABC):
                 raise MagicError(f"Duplicate flag: -{short} and --{flag}")
     
     def _get_default_arg(self, index: int, default: str|None=None):
-        """Try to access an arg, return default if not present
-        
-        Parameters
-        ----------
-        index: int
-            Index of arg
-        default: str | None
-            Default value
+        """Get an *argument* by its index or return a default.
 
-        Returns
-        -------
-        str | None
+        #TODO: Remove this as its only used in a magics that will be removed in production.
+
+        Args:
+            index (int): Index of the *argument*.
+            default (str | None, optional): Default if index no *argument* at index.
+                Defaults to None.
+
+        Returns:
+            str: Value of *argument* or default.
         """
         return self._args[index] if -len(self._args) <= index < len(self._args) else default
     
     def _get_default_flag(self, long: str|None=None, short: str|None=None, default: str|None=None):
-        """Try to access a flag, return default if not present
-        
-        Parameters
-        ----------
-        long: str
-            Name of long flag
-        long: str
-            Name of short flag
-        default: str | None
-            Default value
+        """Try to access a *flag* or return a default.
 
-        Returns
-        -------
-        str | None
+        Args:
+            long (str | None, optional): Normal *flag* name.
+                Defaults to None.
+            short (str | None, optional): *Shorthand flag* name.
+                Defaults to None.
+            default (str | None, optional): Default if neither *shorthand flag* nor *flag* is found.
+                Defaults to None.
+
+        Returns:
+            str: Value of *flag* or default.
         """
         return self._flags.get(long, self._flags.get(short, default))
