@@ -9,7 +9,10 @@ from .helper.types import FlagDict
 
 
 class RandomInt(Magic):
-    """Generate random integer between two given integers"""
+    """Generate random integer between two given integers.
+    
+    #TODO: Remove this magic.
+    """
     def __init__(self, kernle, *args, **flags):
         super().__init__(kernle, *args, **flags)
 

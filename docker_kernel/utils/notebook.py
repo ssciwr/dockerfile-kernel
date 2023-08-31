@@ -1,16 +1,12 @@
 def get_cursor_word(code: str, cursor_pos: int) -> tuple[str, int]:
-    """Return word under cursor as well as its index in a split list of the code
+    """Return word under cursor as well as its index in `code.split()`.
 
-    Parameters
-    ----------
-    code: str
-        Code of the cell
-    cursor_pos: int
-        Position of cursor in code
+    Args:
+        code (str): The user's code.
+        cursor_pos (int): The cursor's position in *code*.
 
-    Returns
-    -------
-    tuple[word: str, word_index: int]
+    Returns:
+        tuple[str, int]: Word under cursor and its position in `code.split()`
     """
     word_end = 0
     segments = code.replace("\n", " ").split(" ")
@@ -27,23 +23,16 @@ def get_cursor_word(code: str, cursor_pos: int) -> tuple[str, int]:
 
 
 def get_cursor_words(code: str, cursor_pos: int) -> tuple[str, str | None]:
-    """Return relevant information regarding the cursor and its environment
+    """Return relevant information regarding the cursor and its environment.
 
-    Parameters
-    ----------
-    code: str
-        Code of the cell
-    cursor_pos: int
-        Position of cursor in code
+    #TODO: Rename this function
 
-    Returns
-    -------
-    tuple[word: str, left_word: str]
+    Args:
+        code (str): The user's code.
+        cursor_pos (int): The cursor's position in *code*.
 
-    word
-        The word under the cursor
-    left_word
-        The next word left of the cursor word that not empty
+    Returns:
+        tuple[str, str | None]: Word under cursor and if present the word left of it (`None` if not present).
     """
     word, word_index = get_cursor_word(code, cursor_pos)
 
@@ -55,23 +44,14 @@ def get_cursor_words(code: str, cursor_pos: int) -> tuple[str, str | None]:
 
 
 def get_cursor_frame(code: str, cursor_pos: int) -> tuple[int, int]:
-    """Return start and end index of word under cursor
+    """Return start and end index of word under cursor in *code*.
 
-    Parameters
-    ----------
-    code: str
-        Code of the cell
-    cursor_pos: int
-        Position of cursor in code
+    Args:
+        code (str): The user's code.
+        cursor_pos (int): The cursor's position in *code*.
 
-    Returns
-    -------
-    tuple[word: str, left_word: str]
-
-    word
-        The word under the cursor
-    left_word
-        The next word left of the cursor word that not empty
+    Returns:
+        tuple[int, int]: Start end end index of word under cursor.
     """
     word, word_index = get_cursor_word(code, cursor_pos)
     segments = code.replace("\n", " ").split(" ")
@@ -83,33 +63,26 @@ def get_cursor_frame(code: str, cursor_pos: int) -> tuple[int, int]:
 
 
 def get_first_word(code: str) -> str | None:
-    """Return first non-empty word
+    """Return first non-empty word in *code*.
 
-    Parameters
-    ----------
-    code: str
-        Code of the cell
+    Args:
+        code (str): The user's code.
 
-    Returns
-    -------
-    str | None
+    Returns:
+        str | None: First non-empty word or `None` if not present.
     """
     return code.lstrip().split(" ")[0]
 
 
 def get_line_start(code: str, cursor_pos: int) -> str | None:
-    """Return first non-empty word
+    """Return first non-empty word in the line the cursor is placed in.
 
-    Parameters
-    ----------
-    code: str
-        Code of the cell
-    cursor_pos: int
-        The position in the code where completion is requested
+    Args:
+        code (str): The user's code.
+        cursor_pos (int): The cursor's position in *code*.
 
-    Returns
-    -------
-    str | None
+    Returns:
+        str | None: First non-empty word in the line the cursor is placed in or `None` if not present.
     """
     lines = []
     lines = code.split("\n")
