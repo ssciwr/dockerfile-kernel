@@ -20,5 +20,5 @@
     "target": "ES2018",
     "types": []
   },
-  "include": ["src/*", "src/helper/*", "src/import/*", "src/shell/*"]
+  "include": ["src/*", "src/build_context/*", "src/helper/*", "src/import/*", "src/shell/*"]
 }

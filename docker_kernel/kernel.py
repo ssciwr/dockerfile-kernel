@@ -11,7 +11,7 @@ from ipylab import JupyterFrontEnd
 
 from .magics.magic import Magic
 from .utils.notebook import get_cursor_frame, get_cursor_words, get_line_start
-from .utils.filesystem import create_dockerfile, copy_files, empty_dir
+from .utils.filesystem import create_dockerfile, copy_files, empty_dir, get_dir_size
 from .utils.dockerignore import preporcessed_dockerignore, dockerignore
 from .magics.helper.errors import MagicError
 from .frontend.interaction import FrontendInteraction
@@ -55,7 +55,11 @@ class DockerKernel(Kernel):
         self._build_stage_aliases = {}
         self._frontend = None
         self._tmp_dir = tempfile.TemporaryDirectory()
-        self._build_context_dir: str = os.getcwd()
+        self._build_context_dir: str | None = None
+        self._build_context_warning_shown = False
+        # 100MB in bytes
+        if get_dir_size(os.getcwd()) < 100_000_000:
+            self._build_context_dir: str | None = os.getcwd()
         self.change_build_context_directory(self._build_context_dir)
 
     def __del__(self):
@@ -125,6 +129,10 @@ class DockerKernel(Kernel):
         frontend_interacted = self._frontend.handle_code(code)
         if frontend_interacted:
             return {'status': 'error', "ename": "FrontEndExecuted", "evalue": "", "traceback": []}
+        # Show build context warning once
+        if self._build_context_dir is None and not self._build_context_warning_shown:
+            self._frontend.build_context_warning()
+            self._build_context_warning_shown = True
 
         ####################
         # Docker execution
@@ -392,6 +400,10 @@ class DockerKernel(Kernel):
             self.send_response(str(empty_response))
             return
         
+        # Leave temp directory empty if no build context is available
+        # This is used primarily when the inital directory is too large
+        if not self._build_context_dir:
+            return
         docker_ignore_rules = preporcessed_dockerignore(self._build_context_dir)
         ignore_function = dockerignore(self._build_context_dir, docker_ignore_rules)
         copy_response = copy_files(self._build_context_dir, self._tmp_dir.name, ignore=ignore_function)

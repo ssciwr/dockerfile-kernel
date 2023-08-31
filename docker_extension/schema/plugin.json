@@ -9,6 +9,10 @@
           { 
             "command": "docker:import", 
             "rank": 1
+          },
+          {
+            "command": "docker:build_context",
+            "rank": 1
           }
         ]
       }
