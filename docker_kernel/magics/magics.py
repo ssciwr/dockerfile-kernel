@@ -5,7 +5,10 @@ from .helper.types import FlagDict
 
 
 class Magics(Magic):
-    """List all available magics """
+    """List all available magics.
+    
+    #TODO: Reference to Magic tutorial in Sphinx
+    """
     def __init__(self, kernle, *args, **flags):
         super().__init__(kernle, *args, **flags)
 

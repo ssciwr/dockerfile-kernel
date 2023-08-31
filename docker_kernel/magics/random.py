@@ -7,7 +7,10 @@ from .helper.types import FlagDict
 
 
 class Random(Magic):
-    """Generate random float between 0 and 1 """
+    """Generate random float between 0 and 1. 
+    
+    #TODO: Remove this magic.
+    """
     def __init__(self, kernle, *args, **flags):
         super().__init__(kernle, *args, **flags)
 
