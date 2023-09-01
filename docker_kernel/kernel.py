@@ -16,6 +16,7 @@ from .utils.dockerignore import preporcessed_dockerignore, dockerignore
 from .magics.helper.errors import MagicError
 from .frontend.interaction import FrontendInteraction
 from docker.errors import APIError
+from prettytable import PrettyTable
 
 # The single source of version truth
 __version__ = "0.0.1"
@@ -176,7 +177,7 @@ class DockerKernel(Kernel):
     @property
     def payload(self) -> list[dict[str, str]]:
         return self._payload
-    
+
     @payload.setter
     def payload(self, payload: tuple[str, str, bool]):
         """Payload that can trigger frontend actions.
@@ -348,7 +349,7 @@ class DockerKernel(Kernel):
             self.send_response(f"Note: Build stage {image_alias} is not known.")
             self.send_response(f"Attempting to use image with name {image_alias}...")
         return f"{code_segments[0]} --from={base_image_id} {' '.join(code_segments[2:])}"
-    
+
     @property
     def buildargs(self) -> dict[str, str]:
         """Getter for current build arguments.
@@ -357,7 +358,7 @@ class DockerKernel(Kernel):
             dict[str, str]: _description_
         """
         return self._buildargs
-    
+
     @buildargs.setter
     def buildargs(self, buildargs: dict[str, str]):
         """Setter for current build arguments.
@@ -368,7 +369,7 @@ class DockerKernel(Kernel):
             buildargs (dict[str, str]): Build arguments that are to be updated.
         """
         self._buildargs.update(buildargs)
-    
+
     def remove_buildargs(self, all: bool=False, *names: str):
         """Remove current build arguments specified by name (or all).
 
@@ -413,4 +414,10 @@ class DockerKernel(Kernel):
         else:
             self.send_response(str(copy_response))
 
-            return 
+            return
+
+    def get_stages(self):
+        table = PrettyTable(["index", "alias", "image id"])
+        for index, _rest in self._build_stage_indices.items():
+            table.add_row([index, _rest[1], _rest[0]])
+        return table
