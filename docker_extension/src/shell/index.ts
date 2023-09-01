@@ -60,7 +60,10 @@ export class ButtonExtension {
         title: "Console's Initial Command",
         text: `docker run -it -w /root ${this.currentImage}`
       }).then(value => {
-        let command = value.value ? value.value + '\r' : null;
+        if (value.value === null) {
+          return;
+        }
+        let command = value.value + '\r';
         this.app.commands
           .execute('terminal:create-new')
           .then((widget: MainAreaWidget<ITerminal.ITerminal>) => {
