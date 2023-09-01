@@ -21,12 +21,14 @@ def create_dockerfile(code: str, directory: str, filename="Dockerfile"):
         dockerfile.write(code)
     return dockerfile_path
 
-def copy_files(src: str, dest: str):
+def copy_files(src: str, dest: str, ignore: Callable[[str, list[str]], Iterable[str]] | None = None):
     """Copy files from one directory to another.
 
     Args:
         src (str): Path of source directory.
         dest (str): Path of destination directory.
+        ignore (Callable[[str, list[str]], Iterable[str]] | None, optional): Ignore callable for [shutil.copytree](https://docs.python.org/3/library/shutil.html#shutil.copytree)
+            Defaults to None.
 
     #TODO: Don't return error, only message. Or figure out something better
         
