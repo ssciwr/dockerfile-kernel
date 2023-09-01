@@ -1,6 +1,10 @@
 import { IDisposable, DisposableDelegate } from '@lumino/disposable';
 import { JupyterFrontEnd } from '@jupyterlab/application';
-import { ToolbarButton, MainAreaWidget } from '@jupyterlab/apputils';
+import {
+  ToolbarButton,
+  MainAreaWidget,
+  InputDialog
+} from '@jupyterlab/apputils';
 import { ITerminal } from '@jupyterlab/terminal';
 import { NotebookPanel } from '@jupyterlab/notebook';
 import {
@@ -36,40 +40,48 @@ export class ButtonExtension {
         await panel.sessionContext.session?.kernel?.requestKernelInfo();
       let kernelName = panel.sessionContext.session?.kernel?.name;
 
-      this.app.commands
-        .execute('terminal:create-new')
-        .then((widget: MainAreaWidget<ITerminal.ITerminal>) => {
-          // If the notebook's kernel is not the Docker kernel, don't add specific code
-          if (kernelName !== 'docker') {
-            return;
-          }
-
-          // If no image Id is provided by the Docker kernel, don't add specific code
-          // @ts-ignore - Due to custom Kernel info in Docker Kernel
-          if (kernelInfo === undefined || kernelInfo.content.imageId === null) {
-            return;
-          }
-          // @ts-ignore - Due to custom Kernel info in Docker Kernel
-          this.currentImage = kernelInfo.content.imageId;
-
-          widget.content.session.connectionStatusChanged.connect(
-            initialCommand
-          );
-        });
-    };
-
-    const initialCommand = (
-      session: ITerminalConnection,
-      status: ConnectionStatus
-    ) => {
-      if (status === 'connected' && this.currentImage !== null) {
-        session.send({
-          type: 'stdin',
-          content: [`docker run -it -w /root ${this.currentImage}` + '\r']
-        });
+      // If the notebook's kernel is not the Docker kernel, don't add specific code
+      if (kernelName !== 'docker') {
+        return;
       }
-    };
 
+      // If no image Id is provided by the Docker kernel, don't add specific code
+      if (
+        kernelInfo === undefined ||
+        // @ts-ignore - Due to custom Kernel info in Docker Kernel
+        kernelInfo.content.imageId === null
+      ) {
+        return;
+      }
+      // @ts-ignore - Due to custom Kernel info in Docker Kernel
+      this.currentImage = kernelInfo.content.imageId;
+
+      InputDialog.getText({
+        title: "Console's Initial Command",
+        text: `docker run -it -w /root ${this.currentImage}`
+      }).then(value => {
+        let command = value.value ? value.value + '\r' : null;
+        this.app.commands
+          .execute('terminal:create-new')
+          .then((widget: MainAreaWidget<ITerminal.ITerminal>) => {
+            const sendInitialCommand = (
+              session: ITerminalConnection,
+              status: ConnectionStatus
+            ) => {
+              if (status === 'connected' && this.currentImage !== null) {
+                session.send({
+                  type: 'stdin',
+                  content: [command]
+                });
+              }
+            };
+
+            widget.content.session.connectionStatusChanged.connect(
+              sendInitialCommand
+            );
+          });
+      });
+    };
     const button = new ToolbarButton({
       className: 'create-console-button',
       label: 'Create Console',
