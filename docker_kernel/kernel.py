@@ -11,7 +11,8 @@ from ipylab import JupyterFrontEnd
 
 from .magics.magic import Magic
 from .utils.notebook import get_cursor_frame, get_cursor_words, get_line_start
-from .utils.filesystem import create_dockerfile, copy_files, empty_dir
+from .utils.filesystem import create_dockerfile, copy_files, empty_dir, get_dir_size
+from .utils.dockerignore import preporcessed_dockerignore, dockerignore
 from .magics.helper.errors import MagicError
 from .frontend.interaction import FrontendInteraction
 from docker.errors import APIError
@@ -22,6 +23,11 @@ __version__ = "0.0.1"
 
 
 class DockerKernel(Kernel):
+    """Docker kernel for Jupyter.
+    
+    Based on [IPython's kernel machinery](https://jupyter-client.readthedocs.io/en/stable/wrapperkernels.html).
+    Interprets Dockerfile commands in Jupyter Lab's notebooks.
+    """
     implementation = "Dockerfile Kernel"
     implementation_version = __version__
     language = 'docker'
@@ -50,10 +56,15 @@ class DockerKernel(Kernel):
         self._build_stage_aliases = {}
         self._frontend = None
         self._tmp_dir = tempfile.TemporaryDirectory()
-        self._build_context_dir: str = os.getcwd()
+        self._build_context_dir: str | None = None
+        self._build_context_warning_shown = False
+        # 100MB in bytes
+        if get_dir_size(os.getcwd()) < 100_000_000:
+            self._build_context_dir: str | None = os.getcwd()
         self.change_build_context_directory(self._build_context_dir)
 
     def __del__(self):
+        """Destruction of `DockerKernel` instance"""
         try:
             self._tmp_dir.cleanup()
             self.send_response("Temporary directory removed")
@@ -62,6 +73,11 @@ class DockerKernel(Kernel):
 
     @property
     def kernel_info(self):
+        """Extends kernel info of `ipykernel.kernelbase.Kernel`.
+
+        Returns:
+            dict[str, Any]: Kernel's information including the current image id.
+        """
         info = super().kernel_info
         info["imageId"] = self._sha1
         return info
@@ -71,25 +87,24 @@ class DockerKernel(Kernel):
     ########################################
 
     def do_execute(self, code: str, silent: bool, store_history=True, user_expressions={}, allow_stdin=False):
-        """ Execute user code.
+        """Execute user code.
 
-        Parameters
-        ----------
-        code: str
-            The code to be executed.
-        silent: bool
-            Whether to display output.
-        store_history: bool
-            Whether to record this code in history and increase the execution count. If silent is True, this is implicitly False.
-        user_expressions: dict
-            Mapping of names to expressions to evaluate after the code has run. You can ignore this if you need to.
-        allow_stdin: bool
-            Whether the frontend can provide input on request (e.g. for Python's `raw_input()`).
+        #TODO: Remove unused args (all except code)
 
-        Returns
-        -------
-        dict
-            Specified [here](https://jupyter-client.readthedocs.io/en/stable/messaging.html#execution-results)
+        Args:
+            code (str): The user's code.
+            silent (bool): Whether to display output.
+            store_history (bool, optional): Whether to record this code in history and increase the execution count.
+                If *silent* is `True`, this is implicitly `False`.
+                Defaults to `True`.
+            user_expressions (dict, optional): Mapping of names to expressions to evaluate after the code has run.
+                You can ignore this if you need to.
+                Defaults to `{}`.
+            allow_stdin (bool, optional): Whether the frontend can provide input on request (e.g. for Python's `raw_input()`).
+                Defaults to `False`.
+
+        Returns:
+            dict: Specified [here](https://jupyter-client.readthedocs.io/en/stable/messaging.html#execution-results)
         """
         
         ####################
@@ -104,6 +119,7 @@ class DockerKernel(Kernel):
 
             if MagicClass is not None:
                 MagicClass(self, *args, **flags).call_magic()
+                #TODO: Use payload getter
                 return {'status': 'ok', 'execution_count': self.execution_count, 'payload': self._payload, 'user_expression': {}}
         except MagicError as e:
             self.send_response(str(e))
@@ -114,20 +130,29 @@ class DockerKernel(Kernel):
         frontend_interacted = self._frontend.handle_code(code)
         if frontend_interacted:
             return {'status': 'error', "ename": "FrontEndExecuted", "evalue": "", "traceback": []}
+        # Show build context warning once
+        if self._build_context_dir is None and not self._build_context_warning_shown:
+            self._frontend.build_context_warning()
+            self._build_context_warning_shown = True
 
         ####################
         # Docker execution
         self.build_image(code)
+        #TODO: Remove commented code
         # self.send_response(f"temp dir:{self._tmp_dir.name}\n")
+        #TODO: Use payload getter
         return {'status': 'ok', 'execution_count': self.execution_count, 'payload': self._payload, 'user_expression': {}}
 
-    def create_build_stage(self, code):
-        """
-        Add current *_sha1* to the code.
-        Replace base image alias or index with image id.
-        COPY --from=[image alias/index] [src] [dest]
-        -->
-        COPY --from=[image id] [src] [dest]
+    def create_build_stage(self, code: str):
+        """Add current `_sha1` to the code.
+
+        Replace alias or index provided in *code* with image id.
+
+        Args:
+            code (str): The user's code.
+
+        Returns:
+            str: User code with added `_sha1`
         """
         code = self._replace_alias(code)
         if self._sha1 is not None:
@@ -138,7 +163,14 @@ class DockerKernel(Kernel):
     # Notebook interaction
     ########################################
 
-    def send_response(self, content_text, stream=None, msg_or_type="stream", content_name="stdout"):
+    def send_response(self, content_text: str, stream=None, msg_or_type="stream", content_name="stdout"):
+        """Send a response to the message currently processed.
+
+        #TODO: Remove unused args (all except content_text)
+
+        Args:
+            content_text (str): Message to be displayed.
+        """
         stream = self.iopub_socket if stream is None else stream
         super().send_response(stream, msg_or_type, {"name": content_name, "text": content_text})
 
@@ -148,25 +180,14 @@ class DockerKernel(Kernel):
 
     @payload.setter
     def payload(self, payload: tuple[str, str, bool]):
-        """ Trigger frontend action via payloads. 
+        """Payload that can trigger frontend actions.
 
-        Parameters
-        ----------
-        Tuple(
-            source: str,
-                action type, e.g. *'set_next_input'* to create a new cell
-            text: str,
-                text contents of the cell to create
-            replace: bool
-                If true, replace the current cell in document UIs instead of inserting a cell. Ignored in console UIs.
-            )
+        #! **Depreciated** though [no replacement](https://jupyter-client.readthedocs.io/en/stable/messaging.html#payloads-deprecated) available yet
 
-        Returns
-        -------
-        NONE
+        #TODO: Turn *payload* into `dict` or reference each key/value on their own
 
-        See [here](https://jupyter-client.readthedocs.io/en/stable/messaging.html#payloads-deprecated) for reference
-
+        Args:
+            payload (tuple[str, str, bool]): Payload to be send to the frontend.
         """
         self._payload = [{
             "source": payload[0],
@@ -175,24 +196,18 @@ class DockerKernel(Kernel):
         }]
 
     def reset_payload(self):
-        """Reset payloads"""
+        """Resets payload"""
         self._payload = []
 
     def do_complete(self, code: str, cursor_pos: int):
-        """Provide code completion
+        """Provide code completion.
 
-        Parameters
-        ----------
-        code: str
-            The code already present
-        cursor_pos: int
-            The position in the code where completion is requested
+        Args:
+            code (str): The user's code.
+            cursor_pos (int): The cursor's position in *code*. This is where the completion is requested.
 
-        Returns
-        -------
-        complete_reply: dict
-
-        See [here](https://jupyter-client.readthedocs.io/en/stable/messaging.html#completion) for reference
+        Returns:
+            dict[str, Any]: A dictionary including all *matches* to be shown as autocompletion.
         """
         matches = []
         line_start = get_line_start(code, cursor_pos)
@@ -227,19 +242,21 @@ class DockerKernel(Kernel):
     ########################################
 
     def tag_image(self, name: str, tag: str|None=None):
-        """ Tag an image.
-        Parameters
-        ----------
-        name: str
-            Image name to be assigned.
-        tag: str, optional
-            Typically a specific version or variant of an image.
+        """Tag an image.
 
-        Return
-        ------
-        None
+        #TODO: Remove MagicError here. It's only supposed to be used in Magics
+        #TODO: Better Exception handling
+
+        Args:
+            name (str): The image name to be assigned.
+            tag (str | None, optional): Typically a specific version or variant of an image.
+                If tag is `None` is given, a default one (*latest*) is assigned by the *docker daemon*
+                Defaults to `None`.
+
+        Raises:
+            MagicError: To be replaced.
+            MagicError: To be replaced.
         """
-
         if not self._sha1 == None:
             image = self._sha1.split(":")[1][:12]
             try:
@@ -251,8 +268,12 @@ class DockerKernel(Kernel):
         else:
             raise MagicError("no valid image, please build the image first")
 
-    def build_image(self, code):
-        """ Build docker image by passing input to the docker API."""
+    def build_image(self, code:str):
+        """Build docker image by passing input to the docker API.
+
+        Args:
+            code (str): The user's code.
+        """
         tmp_dir = self._tmp_dir.name
         build_code = self.create_build_stage(code)
         dockerfile_path = create_dockerfile(build_code, tmp_dir)
@@ -274,9 +295,16 @@ class DockerKernel(Kernel):
                 self.send_response(str(e.explanation))
             else:
                 self.send_response(str(e))
+            return
         self._save_build_stage(code, self._sha1)
 
-    def _save_build_stage(self, code, image_id):
+    def _save_build_stage(self, code:str, image_id:str):
+        """Save build stage with an index and - if provided - an alias.
+
+        Args:
+            code (str): The user's code.
+            image_id (str): The build's image id.
+        """
         if not code.lower().strip().startswith(("from", "arg", "#")):
             _, alias = self._build_stage_indices[self._latest_index]
             self._build_stage_indices[self._latest_index] = (image_id, alias)
@@ -292,7 +320,15 @@ class DockerKernel(Kernel):
             self._build_stage_aliases[alias] = self._latest_index
         self._build_stage_indices[self._latest_index] = (image_id, alias)
 
-    def _replace_alias(self, code):
+    def _replace_alias(self, code: str):
+        """Replace an image index or alias with the locally stored image id.
+
+        Args:
+            code (str): The user's code.
+
+        Returns:
+            str: The user's code with the image index or alias replaced.
+        """
         code_segments = code.lower().strip().split(" ")
         try:
             # Get code segment where image is specified
@@ -316,27 +352,33 @@ class DockerKernel(Kernel):
 
     @property
     def buildargs(self) -> dict[str, str]:
-        """Getter for current build arguments"""
+        """Getter for current build arguments.
+
+        Returns:
+            dict[str, str]: _description_
+        """
         return self._buildargs
 
     @buildargs.setter
     def buildargs(self, buildargs: dict[str, str]):
-        """Getter for current build arguments"""
+        """Setter for current build arguments.
+
+        #TODO: Change this to be an actual setter. Implement an update function instead.
+
+        Args:
+            buildargs (dict[str, str]): Build arguments that are to be updated.
+        """
         self._buildargs.update(buildargs)
 
     def remove_buildargs(self, all: bool=False, *names: str):
-        """Remove current build arguments specified by name
+        """Remove current build arguments specified by name (or all).
 
-        Parameters
-        ----------
-        bool=False: str
-            If True remove all current build arguments, by default False
-        *names: str
-            Names of the bbuild arguments to be removed
+        #TODO: Remove unnecessary *all*, just remove all if no names are given
 
-        Returns
-        -------
-        None
+        Args:
+            all (bool, optional): Determines if all *buildargs* should be removed.
+                Defaults to `False`.
+            *names (tuple[str, ...]): Names of build arguments to be removed.
         """
         if all:
             self._buildargs = {}
@@ -346,6 +388,11 @@ class DockerKernel(Kernel):
                 self.buildargs.pop(name)
 
     def change_build_context_directory(self, source_dir: str):
+        """Change the build context that is used by Docker.
+
+        Args:
+            source_dir (str): The path of the new build context directory.
+        """
         self._build_context_dir = source_dir
 
         empty_response = empty_dir(self._tmp_dir.name)
@@ -354,8 +401,14 @@ class DockerKernel(Kernel):
         else:
             self.send_response(str(empty_response))
             return
-
-        copy_response = copy_files(self._build_context_dir, self._tmp_dir.name)
+        
+        # Leave temp directory empty if no build context is available
+        # This is used primarily when the inital directory is too large
+        if not self._build_context_dir:
+            return
+        docker_ignore_rules = preporcessed_dockerignore(self._build_context_dir)
+        ignore_function = dockerignore(self._build_context_dir, docker_ignore_rules)
+        copy_response = copy_files(self._build_context_dir, self._tmp_dir.name, ignore=ignore_function)
         if copy_response:
             self.send_response("Build context changed\n")
         else:

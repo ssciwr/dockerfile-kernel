@@ -5,17 +5,19 @@ import {
 import { addCommand as addHelperCommand } from './helper/index';
 import { addCommand as addImportCommand } from './import/index';
 import { addCommand as addShellCommand } from './shell/index';
+import { addCommand as addBuildContextCommand } from './build_context/index';
 import { IDefaultFileBrowser } from '@jupyterlab/filebrowser';
 import { ICommandPalette } from '@jupyterlab/apputils';
 
 const addCommands = (
   app: JupyterFrontEnd,
   palette: ICommandPalette,
-  fileBrowser: IDefaultFileBrowser
+  fileBrowser: IDefaultFileBrowser,
 ) => {
   addHelperCommand(app);
   addImportCommand(app, palette, fileBrowser);
   addShellCommand(app);
+  addBuildContextCommand(app);
 };
 
 const plugin: JupyterFrontEndPlugin<void> = {
@@ -26,7 +28,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
   activate: (
     app: JupyterFrontEnd,
     palette: ICommandPalette,
-    fileBrowser: IDefaultFileBrowser
+    fileBrowser: IDefaultFileBrowser,
   ) => {
     addCommands(app, palette, fileBrowser);
   }
