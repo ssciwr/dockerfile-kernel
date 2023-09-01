@@ -1,6 +1,8 @@
-FROM ubuntu
+# Use a base image
+FROM ubuntu:latest
 
-RUN echo Hello expose
+# Set environment variable
+ENV MY_VARIABLE="Hello, Docker!"
 
-EXPOSE 80/tcp
-EXPOSE 80/udp
+# Run a command using the environment variable
+CMD echo $MY_VARIABLE
