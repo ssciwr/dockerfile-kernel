@@ -58,9 +58,16 @@ class DockerKernel(Kernel):
         self._tmp_dir = tempfile.TemporaryDirectory()
         self._build_context_dir: str | None = None
         self._build_context_warning_shown = False
-        # 100MB in bytes
-        if get_dir_size(os.getcwd()) < 100_000_000:
+
+        # Only set cwd as curretn context when its not exceeding a certain threshold
+        # Threshold: 100MiB = 104,857,600 bytes
+        THRESHOLD = 104_857_600
+        docker_ignore_rules = preporcessed_dockerignore(os.getcwd())
+        ignore_function = dockerignore(os.getcwd(), docker_ignore_rules)
+        cwd_size = get_dir_size(os.getcwd(), ignore_function)
+        if cwd_size < THRESHOLD:
             self._build_context_dir: str | None = os.getcwd()
+        # Keep _build_context_dir as None to trigger context prompt on next code execution
         self.change_build_context_directory(self._build_context_dir)
 
     def __del__(self):
@@ -106,7 +113,7 @@ class DockerKernel(Kernel):
         Returns:
             dict: Specified [here](https://jupyter-client.readthedocs.io/en/stable/messaging.html#execution-results)
         """
-        
+
         ####################
         # Prepare kernel for code execution
         self.reset_payload()
