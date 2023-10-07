@@ -1,3 +1,6 @@
+# This is the reference dockerfile against which the mymagic_magic.dockerfile is tested
+
+
 # Except where noted below, docker-miniconda is released under the following terms:
 
 # (c) 2012 Continuum Analytics, Inc. / http://continuum.io

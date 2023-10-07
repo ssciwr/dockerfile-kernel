@@ -1,3 +1,6 @@
+# This is the magic test file in which the magic syntax is being tested
+
+
 # Except where noted below, docker-miniconda is released under the following terms:
 
 # (c) 2012 Continuum Analytics, Inc. / http://continuum.io
