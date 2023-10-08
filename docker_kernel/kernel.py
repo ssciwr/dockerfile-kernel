@@ -173,9 +173,7 @@ class DockerKernel(Kernel):
     def payload(self, payload: tuple[str, str, bool]):
         """Payload that can trigger frontend actions.
 
-        #! **Depreciated** though [no replacement](https://jupyter-client.readthedocs.io/en/stable/messaging.html#payloads-deprecated) available yet
-
-        #TODO: Turn *payload* into `dict` or reference each key/value on their own
+        **Depreciated** though [no replacement](https://jupyter-client.readthedocs.io/en/stable/messaging.html#payloads-deprecated) available yet
 
         Args:
             payload (tuple[str, str, bool]): Payload to be send to the frontend.
@@ -188,7 +186,7 @@ class DockerKernel(Kernel):
 
     def reset_payload(self):
         """Resets payload"""
-        self._payload = []
+        self.payload = ("", "", False)
 
     def do_complete(self, code: str, cursor_pos: int):
         """Provide code completion.
