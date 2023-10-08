@@ -95,23 +95,7 @@ class DockerKernel(Kernel):
 
     def do_execute(self, code: str, silent: bool, store_history=True, user_expressions={}, allow_stdin=False):
         """Execute user code.
-
-        #TODO: Remove unused args (all except code)
-
-        Args:
-            code (str): The user's code.
-            silent (bool): Whether to display output.
-            store_history (bool, optional): Whether to record this code in history and increase the execution count.
-                If *silent* is `True`, this is implicitly `False`.
-                Defaults to `True`.
-            user_expressions (dict, optional): Mapping of names to expressions to evaluate after the code has run.
-                You can ignore this if you need to.
-                Defaults to `{}`.
-            allow_stdin (bool, optional): Whether the frontend can provide input on request (e.g. for Python's `raw_input()`).
-                Defaults to `False`.
-
-        Returns:
-            dict: Specified [here](https://jupyter-client.readthedocs.io/en/stable/messaging.html#execution-results)
+        See [here](https://jupyter-client.readthedocs.io/en/stable/wrapperkernels.html#MyKernel.do_execute) for more info.
         """
 
         ####################
