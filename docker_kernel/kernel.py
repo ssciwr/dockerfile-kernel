@@ -330,26 +330,6 @@ class DockerKernel(Kernel):
             self.send_response(f"Attempting to use image with name {image_alias}...")
         return f"{code_segments[0]} --from={base_image_id} {' '.join(code_segments[2:])}"
 
-    @property
-    def buildargs(self) -> dict[str, str]:
-        """Getter for current build arguments.
-
-        Returns:
-            dict[str, str]: _description_
-        """
-        return self._buildargs
-
-    @buildargs.setter
-    def buildargs(self, buildargs: dict[str, str]):
-        """Setter for current build arguments.
-
-        #TODO: Change this to be an actual setter. Implement an update function instead.
-
-        Args:
-            buildargs (dict[str, str]): Build arguments that are to be updated.
-        """
-        self._buildargs.update(buildargs)
-
     def remove_buildargs(self, all: bool=False, *names: str):
         """Remove current build arguments specified by name (or all).
 
@@ -365,7 +345,7 @@ class DockerKernel(Kernel):
         else:
             self.send_response(names)
             for name in names:
-                self.buildargs.pop(name)
+                self._buildargs.pop(name)
 
     def change_build_context_directory(self, source_dir: str):
         """Change the build context that is used by Docker.

@@ -59,7 +59,7 @@ class Arg(Magic):
 
             for arg in self._args:
                 name, value = arg.split("=")
-                self._kernel.buildargs = {name: value}
+                self._kernel._buildargs.update({name: value})
                 self._kernel.send_response(f"Build argument '{name}' set to '{value}'\n")
             self._list_argument("all")
 
@@ -77,7 +77,7 @@ class Arg(Magic):
         else:
             response = ""
             for name in names:
-                if name in self._kernel.buildargs.keys():
+                if name in self._kernel._buildargs.keys():
                     response = response + f"Build argument '{name}' removed\n"
                     continue
                 else:
@@ -94,7 +94,7 @@ class Arg(Magic):
         Args:
             *names (tuple[str]): The names of the *build arguments* to be listed.
         """
-        buildargs = self._kernel.buildargs
+        buildargs = self._kernel._buildargs
         if names[0] == "all":
             if not buildargs:
                 self._kernel.send_response("No current build arguments")
