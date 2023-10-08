@@ -150,16 +150,15 @@ class DockerKernel(Kernel):
     # Notebook interaction
     ########################################
 
-    def send_response(self, content_text: str, stream=None, msg_or_type="stream", content_name="stdout"):
+    def send_response(self, content_text: str):
         """Send a response to the message currently processed.
 
-        #TODO: Remove unused args (all except content_text)
+        See [here](https://jupyter-client.readthedocs.io/en/stable/wrapperkernels.html#ipykernel.kernelbase.Kernel.send_response) for more info.
 
         Args:
             content_text (str): Message to be displayed.
         """
-        stream = self.iopub_socket if stream is None else stream
-        super().send_response(stream, msg_or_type, {"name": content_name, "text": content_text})
+        super().send_response(self.iopub_socket, "stream", {"name": "stdout", "text": content_text})
 
     @property
     def payload(self) -> list[dict[str, str]]:
