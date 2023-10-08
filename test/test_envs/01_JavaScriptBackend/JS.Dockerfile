@@ -32,7 +32,6 @@ ENV USER_NAME=node USER_UID=1000 GROUP_NAME=node GROUP_UID=1000
 
 WORKDIR "${MS_HOME}"
 
-# Build
 FROM environment AS develop
 
 COPY ["./package.json", "./package-lock.json", "${MS_HOME}/"]
@@ -46,10 +45,8 @@ RUN PATH="$(npm bin)":${PATH} \
   && npm run test:ci \
   && npm run test:e2e \
   && npm run-script build \
-  # Clean up dependencies for production image
   && npm install --frozen-lockfile  --production && npm cache clean --force
 
-# Serve
 FROM environment AS prod
 
 
