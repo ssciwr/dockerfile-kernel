@@ -330,22 +330,19 @@ class DockerKernel(Kernel):
             self.send_response(f"Attempting to use image with name {image_alias}...")
         return f"{code_segments[0]} --from={base_image_id} {' '.join(code_segments[2:])}"
 
-    def remove_buildargs(self, all: bool=False, *names: str):
-        """Remove current build arguments specified by name (or all).
-
-        #TODO: Remove unnecessary *all*, just remove all if no names are given
+    def remove_buildargs(self, *names: str):
+        """Remove current build arguments specified by name.
+        Remove all if no names given.
 
         Args:
-            all (bool, optional): Determines if all *buildargs* should be removed.
-                Defaults to `False`.
             *names (tuple[str, ...]): Names of build arguments to be removed.
         """
-        if all:
-            self._buildargs = {}
-        else:
+        if names:
             self.send_response(names)
             for name in names:
                 self._buildargs.pop(name)
+        else:
+            self._buildargs = {}
 
     def change_build_context_directory(self, source_dir: str):
         """Change the build context that is used by Docker.

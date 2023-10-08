@@ -72,7 +72,7 @@ class Arg(Magic):
             *names (tuple[str]): The names of the *build arguments* to be removed.
         """
         if names[0] == "all":
-            self._kernel.remove_buildargs(True)
+            self._kernel.remove_buildargs()
             self._kernel.send_response("All build arguments removed\n")  
         else:
             response = ""
@@ -83,7 +83,7 @@ class Arg(Magic):
                 else:
                     self._kernel.send_response(f"'{name}' not in current build arguments")
                     return
-            self._kernel.remove_buildargs(False, *names)
+            self._kernel.remove_buildargs(*names)
             self._kernel.send_response(response)
 
     def _list_argument(self, *names: str):
