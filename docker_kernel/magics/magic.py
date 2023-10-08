@@ -60,10 +60,9 @@ class Magic(ABC):
 
     @staticmethod
     @abstractmethod
-    def VALID_OPTIONS() -> dict[str, FlagDict]:
+    def VALID_FLAGS() -> dict[str, FlagDict]:
         """*(abstract, static)* Flags that are accepted by the *Magic*.
 
-        #TODO: Rename this to VALID_FLAGS
         #TODO: Reference FlagDict for Sphinx
 
         Returns:
@@ -196,7 +195,7 @@ class Magic(ABC):
         
         # Cursor on flag definition
         if word.startswith("-"):
-            options: dict[str, FlagDict] = magic.VALID_OPTIONS()
+            options: dict[str, FlagDict] = magic.VALID_FLAGS()
             new_flags = []
             for name, details in options.items():
                 name = f"--{name}"
@@ -267,7 +266,7 @@ class Magic(ABC):
             MagicError: No vlaue was given for *shorthand flag*
             MagicError: Both *flag* and *shorthand flag* were passed.
         """
-        options: dict[str, FlagDict] = self.VALID_OPTIONS()
+        options: dict[str, FlagDict] = self.VALID_FLAGS()
         flags = list(options.keys())
         shorts = [d["short"] for d in options.values() if d["short"] is not None]
         for flag, value in self._flags.items():

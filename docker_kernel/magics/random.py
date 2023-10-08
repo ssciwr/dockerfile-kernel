@@ -23,7 +23,7 @@ class Random(Magic):
         return {}
 
     @staticmethod
-    def VALID_OPTIONS() -> dict[str, FlagDict]:
+    def VALID_FLAGS() -> dict[str, FlagDict]:
         return {}
     
     def _execute_magic(self) -> None:

@@ -33,7 +33,7 @@ class RandomInt(Magic):
         }
 
     @staticmethod
-    def VALID_OPTIONS() -> list[FlagDict]:
+    def VALID_FLAGS() -> list[FlagDict]:
         return {}
     
     def _execute_magic(self) -> None:

@@ -23,7 +23,7 @@ class Arg(Magic):
         return {}
     
     @staticmethod
-    def VALID_OPTIONS() -> dict[str, FlagDict]:
+    def VALID_FLAGS() -> dict[str, FlagDict]:
         return         {
             "remove": {
                 "short": "rm",
