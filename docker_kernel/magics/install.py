@@ -34,7 +34,7 @@ class Install(Magic):
             case "npm":
                 code = "RUN npm install " + f"{packages}" + " {newLine}npm cache clean --force"
             case "pip":
-                code = "RUN pip install --upgrade pip {newLine}pip install " + f"{packages}" + " {newLine}rm -Rf /root/.cache/pip"
+                code = "RUN pip install --upgrade pip {newLine}pip install " + f"{packages}" + " {newLine}rm -rf /root/.cache/pip"
             case other:
                 self._kernel.send_response("Package manager not available (currently available: apt(-get), conda, conda-forge, npm, pip)")
         
