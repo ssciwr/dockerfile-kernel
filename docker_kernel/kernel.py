@@ -353,7 +353,7 @@ class DockerKernel(Kernel):
         self._build_context_dir = source_dir
 
         empty_response = empty_dir(self._tmp_dir.name)
-        if empty_response:
+        if empty_response is True:
             self.send_response("Temporary directory emptied\n")
         else:
             self.send_response(str(empty_response))
@@ -366,7 +366,7 @@ class DockerKernel(Kernel):
         docker_ignore_rules = preporcessed_dockerignore(self._build_context_dir)
         ignore_function = dockerignore(self._build_context_dir, docker_ignore_rules)
         copy_response = copy_files(self._build_context_dir, self._tmp_dir.name, ignore=ignore_function)
-        if copy_response:
+        if copy_response is True:
             self.send_response("Build context changed\n")
         else:
             self.send_response(str(copy_response))
