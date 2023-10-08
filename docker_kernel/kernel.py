@@ -228,9 +228,6 @@ class DockerKernel(Kernel):
     def tag_image(self, name: str, tag: str|None=None):
         """Tag an image.
 
-        #TODO: Remove MagicError here. It's only supposed to be used in Magics
-        #TODO: Better Exception handling
-
         Args:
             name (str): The image name to be assigned.
             tag (str | None, optional): Typically a specific version or variant of an image.
@@ -238,8 +235,7 @@ class DockerKernel(Kernel):
                 Defaults to `None`.
 
         Raises:
-            MagicError: To be replaced.
-            MagicError: To be replaced.
+            MagicError: If no image is present to be tagged or an error within the docker api occurs.
         """
         if not self._sha1 == None:
             image = self._sha1.split(":")[1][:12]
