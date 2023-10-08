@@ -25,8 +25,6 @@ def get_cursor_word(code: str, cursor_pos: int) -> tuple[str, int]:
 def get_cursor_words(code: str, cursor_pos: int) -> tuple[str, str | None]:
     """Return relevant information regarding the cursor and its environment.
 
-    #TODO: Rename this function
-
     Args:
         code (str): The user's code.
         cursor_pos (int): The cursor's position in *code*.
