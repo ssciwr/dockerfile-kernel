@@ -110,7 +110,6 @@ class DockerKernel(Kernel):
 
             if MagicClass is not None:
                 MagicClass(self, *args, **flags).call_magic()
-                #TODO: Use payload getter
                 return {'status': 'ok', 'execution_count': self.execution_count, 'payload': self.payload, 'user_expression': {}}
         except MagicError as e:
             self.send_response(str(e))
@@ -131,7 +130,6 @@ class DockerKernel(Kernel):
         self.build_image(code)
         #TODO: Remove commented code
         # self.send_response(f"temp dir:{self._tmp_dir.name}\n")
-        #TODO: Use payload getter
         return {'status': 'ok', 'execution_count': self.execution_count, 'payload': self.payload, 'user_expression': {}}
 
     def create_build_stage(self, code: str):
