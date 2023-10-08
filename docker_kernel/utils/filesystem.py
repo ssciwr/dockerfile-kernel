@@ -2,10 +2,8 @@ import os
 import shutil
 from typing import Callable, Iterable
 
-def create_dockerfile(code: str, directory: str, filename="Dockerfile"):
+def create_dockerfile(code: str, directory: str):
     """Create a *Dockerfile*
-    
-    #TODO: Remove filename (not used)
 
     Args:
         code (str): The *Dockerfile* code.
@@ -16,7 +14,7 @@ def create_dockerfile(code: str, directory: str, filename="Dockerfile"):
     Returns:
         str: Path of the created *Dockerfile*
     """
-    dockerfile_path = os.path.join(directory, filename)
+    dockerfile_path = os.path.join(directory, "Dockerfile")
     with open(dockerfile_path, 'w+') as dockerfile:
         dockerfile.write(code)
     return dockerfile_path
