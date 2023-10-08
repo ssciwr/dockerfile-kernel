@@ -2,4 +2,4 @@
 
 FROM ubuntu
 
-%install apt rolldice
+# %install apt rolldice
