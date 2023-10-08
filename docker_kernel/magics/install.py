@@ -32,12 +32,14 @@ class Install(Magic):
                 code = "RUN apt-get update {newLine}apt-get install -y " + f"{packages}" + " {newLine}rm -rf /var/lib/apt/lists/*"
             case "conda":
                 code = "RUN conda install -y --freeze-installed " + f"{packages}" + " {newLine}conda clean -afy"
+            case "conda-forge":
+                code = "RUN conda install -y --freeze-installed -c conda-forge" + f"{packages}" + " {newLine}conda clean -afy"
             case "npm":
                 code = "RUN npm install " + f"{packages}" + " {newLine}npm cache clean --force"
             case "pip":
                 code = "RUN pip install --upgrade pip {newLine}pip install " + f"{packages}" + " {newLine}rm -Rf /root/.cache/pip"
             case other:
-                self._kernel.send_response("Package manager not available (currently available: apt(-get), conda, npm, pip)")
+                self._kernel.send_response("Package manager not available (currently available: apt(-get), conda, conda-forge, npm, pip)")
         
         if code is not None:
             self._kernel.payload = ("set_next_input", code.format(newLine = "&&\n\t "), True)
