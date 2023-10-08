@@ -38,17 +38,12 @@ def generateDockerId(test_directory, dockerfile_name):
                 docker_id = loginfo['aux']['ID']
     return docker_id
 
-@pytest.mark.parametrize("Dockerfile_dir", (d for d in os.listdir(os.path.join(os.path.dirname(__file__), "test_magics"))))
-def test_image_ids(Dockerfile_dir):
-    test_path = os.path.join(os.path.dirname(__file__), "test_magics", Dockerfile_dir)
-    print(test_path)
-    test_directories = [os.path.join(test_path, d) for d in next(os.walk(test_path))[1]]
-    
-    for test_directory in test_directories:
-        dockerfile_name = next(f for f in os.listdir(test_directory) if os.path.isfile(os.path.join(test_directory, f)) and f.lower().endswith("docker.dockerfile"))
-        kernelfile_name = next(f for f in os.listdir(test_directory) if os.path.isfile(os.path.join(test_directory, f)) and f.lower().endswith("kernel.dockerfile")) # magic testfile has to end with "magic.dockerfile" e.g. mymagic_magic.dockerfile
-        kernel_id = generateKernelId(test_directory, kernelfile_name)
-        print(kernel_id)
-        docker_id = generateDockerId(test_directory, dockerfile_name)
-        print(docker_id)
-        assert kernel_id == docker_id, "Kernel Id and Docker Id should be the same"
+@pytest.mark.parametrize("Dockerfile_dir", os.listdir(os.path.join(os.path.dirname(__file__), "test_magics")))
+def test_magics(Dockerfile_dir):
+    test_directory = os.path.join(os.path.dirname(__file__), "test_magics", Dockerfile_dir)
+
+    dockerfile_name = next(f for f in os.listdir(test_directory) if os.path.isfile(os.path.join(test_directory, f)) and f.lower().endswith("docker.dockerfile"))
+    kernelfile_name = next(f for f in os.listdir(test_directory) if os.path.isfile(os.path.join(test_directory, f)) and f.lower().endswith("kernel.dockerfile")) # magic testfile has to end with "magic.dockerfile" e.g. mymagic_magic.dockerfile
+    kernel_id = generateKernelId(test_directory, kernelfile_name)
+    docker_id = generateDockerId(test_directory, dockerfile_name)
+    assert kernel_id == docker_id, "Kernel Id and Docker Id should be the same"
