@@ -128,8 +128,6 @@ class DockerKernel(Kernel):
         ####################
         # Docker execution
         self.build_image(code)
-        #TODO: Remove commented code
-        # self.send_response(f"temp dir:{self._tmp_dir.name}\n")
         return {'status': 'ok', 'execution_count': self.execution_count, 'payload': self.payload, 'user_expression': {}}
 
     def create_build_stage(self, code: str):
