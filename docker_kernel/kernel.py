@@ -111,7 +111,7 @@ class DockerKernel(Kernel):
             if MagicClass is not None:
                 MagicClass(self, *args, **flags).call_magic()
                 #TODO: Use payload getter
-                return {'status': 'ok', 'execution_count': self.execution_count, 'payload': self._payload, 'user_expression': {}}
+                return {'status': 'ok', 'execution_count': self.execution_count, 'payload': self.payload, 'user_expression': {}}
         except MagicError as e:
             self.send_response(str(e))
             return {'status': 'error', "ename": "MagicError", "evalue": str(e), "traceback": []}
@@ -132,7 +132,7 @@ class DockerKernel(Kernel):
         #TODO: Remove commented code
         # self.send_response(f"temp dir:{self._tmp_dir.name}\n")
         #TODO: Use payload getter
-        return {'status': 'ok', 'execution_count': self.execution_count, 'payload': self._payload, 'user_expression': {}}
+        return {'status': 'ok', 'execution_count': self.execution_count, 'payload': self.payload, 'user_expression': {}}
 
     def create_build_stage(self, code: str):
         """Add current `_sha1` to the code.
