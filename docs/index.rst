@@ -27,9 +27,8 @@ Prerequisites
 * `Docker <https://docs.docker.com/engine/install/ubuntu/>`_ needs to be installed
 * The user needs to be in the `docker` group (see e.g. `here <https://askubuntu.com/a/739861>`_)
 * `JupyterLab <https://jupyterlab.readthedocs.io/en/stable/getting_started/installation.html>`_ >= 4.0.0 needs to be installed
+.. _node_req:
 * *(optional)* `Node.js <https://nodejs.org/en/download/package-manager>`_ >= 18 needs to be installed for :ref:`frontend extensions <installation_frontend>`
-
-
 
 Installation
 ++++++++++++
@@ -43,6 +42,7 @@ Installation
 .. _installation_frontend:
 Installation frontend extensions *(optional)* 
 +++++++++++++++++++++++++++
+:ref:`Node.js required <node_req>`
 
 .. code-block:: console
    
