@@ -5,7 +5,7 @@ Export the notebook as a valid Dockerfile.
 
 To execute click: *File > Save and Export Notebook As... > Dockerfile*
 
-.. image:: /_gifs/export.gif
+.. image:: /_gifs/frontend/export.gif
     :alt: Video of exporting
 
 The export focuses on restorability. The goal is to have the same notebook when importing the exported notebook back into JupyterLab.

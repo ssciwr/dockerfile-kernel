@@ -7,5 +7,5 @@ To execute click: *File > Open Dockerfile from Path...*
 and enter the path of the Dockerfile **relative** to the JupyterLab execution directory.
 
 
-.. image:: /_gifs/import.gif
+.. image:: /_gifs/frontend/import.gif
     :alt: Video of importing

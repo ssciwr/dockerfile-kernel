@@ -6,7 +6,7 @@ and at a specific keyword.
 
 To execute type a word followed by a '?' and execute the cell.
 
-.. image:: /_gifs/helper.gif
+.. image:: /_gifs/frontend/helper.gif
     :alt: Video of helper
 
 The code cell will **not** be executed by this.
