@@ -1,22 +1,46 @@
 Install
 =======
 
-    Installs additional package(s) to the docker image utilizing different package managers, including the clean up process afterwards. Currenty, there are four package managers:
-    apt(-get), pip, conda, conda with channel conda-forge and npm.
-
-    Caveat: The specified package manager has to be available at the current build stage.
-
-    After successfull execution, the magic sippet will be replaced by the actual code executed by the kernel to enable exporting of the resulting Dockerfile.
-
-
+Installs additional packages to the docker image utilizing different package managers, including
+the clean up process afterwards.
 
 Usage
 -----
 
->>> %install <package manager> <package1 (package2 package3 ...)>
+.. code-block::
 
-Examples:
+    %install <package manager> <package1 (package2 package3 ...)>
 
->>> %install apt foo
+.. image:: /_gifs/magics/install.gif
+    :alt: Video of install
 
->>> %install pip foo bar
+After successfull execution, the magic sippet will be replaced by the actual code executed by
+the kernel to enable exporting of the resulting Dockerfile.
+
+.. TODO: Link to exporting
+
+Available Package Managers
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+* apt
+* pip
+* conda
+* conda-forge
+* npm
+
+conda-forge
++++++++++++
+conda-forge is conda with the *conda-forge* channel
+
+Caution
++++++++
+The specified package manager has to be available at the current build stage.
+
+Examples
+--------
+
+.. code-block::
+
+    %install apt foo
+
+    %install pip foo bar
