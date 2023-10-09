@@ -63,11 +63,12 @@ Space requirements
 The kernel uses a temporary directory as a build context for the Dockerfile.
 
 The inital build context is set to the directory JupyterLab was started in.
-A warning is displayed in case this directory is large **only** if frontend extensions are installed.
+A :doc:`warning <./features/frontend/build_context>` is displayed in case this directory is
+large **only** if frontend extensions are installed.
 
-Please make sure that you have enough space available to copy the build context directory or use a `.dockerignore` file to limit the build context.
-
-.. TODO: Link dockerignore, warning extension and maybe build context magic
+Please make sure that you have enough space available to copy the
+:doc:`build context <./features/magics/context>` directory or use a
+:ref:`dockerignore <dockerignore>` file to limit the build context.
 
 Restraints 
 ++++++++++

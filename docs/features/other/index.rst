@@ -1,6 +1,8 @@
 Other Functionalities
 ======================
 
+.. _dockerignore:
+
 .dockerignore
 -------------
 
