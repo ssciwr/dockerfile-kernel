@@ -1,9 +1,14 @@
 Magics
 ======
 
-    List all the magics
+List all available magics.
 
 Usage
 -----
 
->>> %magics
+.. code-block::
+
+    %magics
+
+.. image:: /_gifs/magics/magics.gif
+    :alt: Video of magics
