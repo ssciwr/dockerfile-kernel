@@ -3,6 +3,8 @@ Export as Dockerfile
 
 Export the notebook as a valid Dockerfile.
 
+To execute click: *File > Save and Export Notebook As... > Dockerfile*
+
 .. image:: /_gifs/export.gif
     :alt: Video of exporting
 
