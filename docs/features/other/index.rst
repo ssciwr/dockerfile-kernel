@@ -20,3 +20,18 @@ dockerignore files. This means the result of files are apllying the dockerignore
 
 We tried to *"miss"* files rather than include those that aren't by the docker daemon.
 Still, errors could occur because of this.
+
+
+Syntax Highlighting
+-------------------
+
+The notebook code support Dockerfile highlighting.
+
+
+Auto Complete
+-------------
+
+Dockerfile Kernel provides auto completion by pressing the *tab* button in code.
+
+.. image:: /_gifs/other/autocomplete.gif
+    :alt: Video of autocomplete
