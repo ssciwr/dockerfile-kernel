@@ -14,7 +14,7 @@ Usage
 .. image:: /_gifs/magics/install.gif
     :alt: Video of install
 
-After successfull execution, the magic sippet will be replaced by the actual code executed by
+After successfull execution, the magic snippet will be replaced by the actual code executed by
 the kernel to enable :doc:`exporting <../frontend/export>` of the resulting Dockerfile.
 
 Available Package Managers
