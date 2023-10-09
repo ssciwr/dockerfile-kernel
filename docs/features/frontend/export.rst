@@ -3,7 +3,10 @@ Export as Dockerfile
 
 Export the notebook as a valid Dockerfile.
 
-To execute click: *File > Save and Export Notebook As... > Dockerfile*
+Usage
+-----
+
+*File > Save and Export Notebook As... > Dockerfile*
 
 .. image:: /_gifs/frontend/export.gif
     :alt: Video of exporting
@@ -16,7 +19,7 @@ will be commented out.
 .. TODO: link import
 
 Example
-^^^^^^^
+-------
 The notebook
 
 +---+---------------------------------------+-----------+
