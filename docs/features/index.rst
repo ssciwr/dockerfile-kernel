@@ -10,4 +10,4 @@ To make use of the notebooks features, custom :doc:`magics <./magics/index>` and
 
    magics/index
    frontend/index
-   docker/index
+   other/index

@@ -80,3 +80,4 @@ Other
 +++++
 
 * The output of a cell can get lengthy. To activate scrollable output see `here <https://stackoverflow.com/a/50641638/11785440>`_.
+* See :ref:`here <dockerignore_important>` before using dockerignore files.
