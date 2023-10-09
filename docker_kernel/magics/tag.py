@@ -31,7 +31,7 @@ class Tag(Magic):
         }
 
     @staticmethod
-    def VALID_OPTIONS() -> dict[str, FlagDict]:
+    def VALID_FLAGS() -> dict[str, FlagDict]:
         return {
             "image" : {
                 "short": "i",

@@ -60,10 +60,9 @@ class Magic(ABC):
 
     @staticmethod
     @abstractmethod
-    def VALID_OPTIONS() -> dict[str, FlagDict]:
+    def VALID_FLAGS() -> dict[str, FlagDict]:
         """*(abstract, static)* Flags that are accepted by the *Magic*.
 
-        #TODO: Rename this to VALID_FLAGS
         #TODO: Reference FlagDict for Sphinx
 
         Returns:
@@ -121,8 +120,6 @@ class Magic(ABC):
     @staticmethod
     def _get_magic(name: str) -> Type[Magic] | None:
         """*(static)* Get *Magic* via its name.
-
-        #TODO: Change this so that is is less confusing why a % must be present in the name
 
         Args:
             name (str): Name of the *Magic*.
@@ -196,7 +193,7 @@ class Magic(ABC):
         
         # Cursor on flag definition
         if word.startswith("-"):
-            options: dict[str, FlagDict] = magic.VALID_OPTIONS()
+            options: dict[str, FlagDict] = magic.VALID_FLAGS()
             new_flags = []
             for name, details in options.items():
                 name = f"--{name}"
@@ -228,8 +225,6 @@ class Magic(ABC):
     def _find_invalid_args(self):
         """Raise error when current *arguments* are not valid.
 
-        #TODO: Use more granular Errors that inherit MagicError
-
         Raises:
             MagicError: Required *argument* is missing.
             MagicError: An *argument's* value isn't valid
@@ -256,18 +251,16 @@ class Magic(ABC):
     def _find_invalid_flags(self):
         """Raise error when a *flag* is not valid.
 
-        #TODO: Add case where duplicate flags are used (both normal or both short)
-        #TODO: Use more granular Errors that inherit MagicError
         #TODO: Add refernce to MagicError for Sphinx
 
         Raises:
             MagicError: The *flag* is not known.
-            MagicError: No vlaue was given for *flag*
-            MagicError: The *shorthand flag* is not known
-            MagicError: No vlaue was given for *shorthand flag*
+            MagicError: No value was given for *flag*.
+            MagicError: The *shorthand flag* is not known.
+            MagicError: No vlaue was given for *shorthand flag*.
             MagicError: Both *flag* and *shorthand flag* were passed.
         """
-        options: dict[str, FlagDict] = self.VALID_OPTIONS()
+        options: dict[str, FlagDict] = self.VALID_FLAGS()
         flags = list(options.keys())
         shorts = [d["short"] for d in options.values() if d["short"] is not None]
         for flag, value in self._flags.items():
@@ -289,8 +282,6 @@ class Magic(ABC):
     
     def _get_default_arg(self, index: int, default: str|None=None):
         """Get an *argument* by its index or return a default.
-
-        #TODO: Remove this as its only used in a magics that will be removed in production.
 
         Args:
             index (int): Index of the *argument*.

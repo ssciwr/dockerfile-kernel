@@ -23,7 +23,7 @@ class Arg(Magic):
         return {}
     
     @staticmethod
-    def VALID_OPTIONS() -> dict[str, FlagDict]:
+    def VALID_FLAGS() -> dict[str, FlagDict]:
         return         {
             "remove": {
                 "short": "rm",
@@ -59,7 +59,7 @@ class Arg(Magic):
 
             for arg in self._args:
                 name, value = arg.split("=")
-                self._kernel.buildargs = {name: value}
+                self._kernel._buildargs.update({name: value})
                 self._kernel.send_response(f"Build argument '{name}' set to '{value}'\n")
             self._list_argument("all")
 
@@ -72,18 +72,18 @@ class Arg(Magic):
             *names (tuple[str]): The names of the *build arguments* to be removed.
         """
         if names[0] == "all":
-            self._kernel.remove_buildargs(True)
+            self._kernel.remove_buildargs()
             self._kernel.send_response("All build arguments removed\n")  
         else:
             response = ""
             for name in names:
-                if name in self._kernel.buildargs.keys():
+                if name in self._kernel._buildargs.keys():
                     response = response + f"Build argument '{name}' removed\n"
                     continue
                 else:
                     self._kernel.send_response(f"'{name}' not in current build arguments")
                     return
-            self._kernel.remove_buildargs(False, *names)
+            self._kernel.remove_buildargs(*names)
             self._kernel.send_response(response)
 
     def _list_argument(self, *names: str):
@@ -94,7 +94,7 @@ class Arg(Magic):
         Args:
             *names (tuple[str]): The names of the *build arguments* to be listed.
         """
-        buildargs = self._kernel.buildargs
+        buildargs = self._kernel._buildargs
         if names[0] == "all":
             if not buildargs:
                 self._kernel.send_response("No current build arguments")
