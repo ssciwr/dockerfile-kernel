@@ -8,4 +8,5 @@ Notebook Magics
    context
    install
    magics
+   stages
    tag
