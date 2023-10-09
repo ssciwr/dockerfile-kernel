@@ -377,22 +377,19 @@ class DockerKernel(Kernel):
         """
         self._buildargs.update(buildargs)
 
-    def remove_buildargs(self, all: bool=False, *names: str):
+    def remove_buildargs(self, *names: str):
         """Remove current build arguments specified by name (or all).
 
-        #TODO: Remove unnecessary *all*, just remove all if no names are given
-
         Args:
-            all (bool, optional): Determines if all *buildargs* should be removed.
-                Defaults to `False`.
-            *names (tuple[str, ...]): Names of build arguments to be removed.
+            *names (tuple[str, ...]): Names of build arguments to be removed. If no name is specified, all buildargs get removed.
         """
-        if all:
+        if len(names) == 0:
             self._buildargs = {}
         else:
             self.send_response(names)
             for name in names:
                 self.buildargs.pop(name)
+
 
     def change_build_context_directory(self, source_dir: str):
         """Change the build context that is used by Docker.
