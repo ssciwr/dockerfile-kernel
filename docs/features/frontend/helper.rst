@@ -1,2 +1,12 @@
 Command Helper
 ==============
+
+Open the `Dockerfile reference <https://docs.docker.com/engine/reference/builder/>`_ inside the notebook
+and at a specific keyword.
+
+To execute type a word followed by a '?' and execute the cell.
+
+.. image:: /_gifs/helper.gif
+    :alt: Video of helper
+
+The code cell will **not** be executed by this.
