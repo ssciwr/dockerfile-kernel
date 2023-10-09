@@ -7,3 +7,4 @@ Features
 
    docker/index
    magics/index
+   frontend/index
