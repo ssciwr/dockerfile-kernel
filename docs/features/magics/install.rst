@@ -15,9 +15,7 @@ Usage
     :alt: Video of install
 
 After successfull execution, the magic sippet will be replaced by the actual code executed by
-the kernel to enable exporting of the resulting Dockerfile.
-
-.. TODO: Link to exporting
+the kernel to enable :doc:`exporting <../frontend/export>` of the resulting Dockerfile.
 
 Available Package Managers
 ^^^^^^^^^^^^^^^^^^^^^^^^^^

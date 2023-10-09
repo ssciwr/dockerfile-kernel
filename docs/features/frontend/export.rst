@@ -11,12 +11,10 @@ Usage
 .. image:: /_gifs/frontend/export.gif
     :alt: Video of exporting
 
-The export focuses on restorability. The goal is to have the same notebook when importing the exported notebook back into JupyterLab.
+The export focuses on restorability. The goal is to have the same notebook when :doc:`importing <import>` the exported notebook back into JupyterLab.
 
 This means all markdown cells as well as the cells containing magic commands will also be present in the exported Dockerfile. They
 will be commented out.
-
-.. TODO: link import
 
 Example
 -------
