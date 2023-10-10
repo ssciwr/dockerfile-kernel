@@ -23,18 +23,7 @@ class Arg(Magic):
     
     @staticmethod
     def VALID_FLAGS() -> dict[str, FlagDict]:
-        return         {
-            "remove": {
-                "short": "rm",
-                "default": "all",
-                "desc": "Remove the build argument specified by name"
-            },
-            "list": {
-                "short": "ls",
-                "default": "all",
-                "desc": "List the build argument(s) specified by name"
-            }
-        }
+        return         {}
     
     def _execute_magic(self) -> None:
         if self._args:
@@ -91,7 +80,7 @@ class Arg(Magic):
         Args:
             *names (tuple[str]): The names of the *build arguments* to be listed.
         """
-        buildargs = self._kernel.buildargs
+        buildargs = self._kernel._buildargs
         if len(names) == 0:
             if not buildargs:
                 self._kernel.send_response("No current build arguments")
