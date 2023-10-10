@@ -11,6 +11,8 @@ To set Build Arguments:
 
     %arg <name>=<value> (<name2>=<value2> <name3>=<value3> ...)
 
+.. image:: /_gifs/magics/arg_set.gif
+    :alt: Video of setting arg
 
 To list current Build Arguments (default lists all):
 
@@ -19,6 +21,8 @@ To list current Build Arguments (default lists all):
     %arg list
     %arg ls <name> (<name1> <name2> ...)
 
+.. image:: /_gifs/magics/arg_list.gif
+    :alt: Video of listing args
 
 To remove current Build Arguments (default removes all)
 
@@ -27,7 +31,8 @@ To remove current Build Arguments (default removes all)
     %arg remove
     %arg rm <name> (<name1> <name2> ...)
 
-
+.. image:: /_gifs/magics/arg_remove.gif
+    :alt: Video of removing args
 
 Caution
 +++++++
