@@ -38,6 +38,9 @@ jobs:
       with:
         docker_version: "20.10"
         docker_channel: "stable"
+
+    - name: Install jupyterlab
+      run: python -m pip install jupyterlab
     
     - name: Install pytest
       run: python -m pip install pytest
