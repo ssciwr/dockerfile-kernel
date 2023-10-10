@@ -228,12 +228,9 @@ class DockerKernel(Kernel):
 
         # Docker command completion
         elif line_start not in self.keywords and not line_start.startswith("%"):
-            matches.extend(k for k in self.keywords if k.startswith(
-                partial_word.upper()))
-        else:
-            matches.extend(flag for flag in self.keywords[line_start] if flag.startswith(
-                partial_word.lower()
-            ))
+            matches.extend(k for k in self.keywords if k.startswith(partial_word.upper()))
+        elif line_start in self.keywords:
+            matches.extend(flag for flag in self.keywords[line_start] if flag.startswith(partial_word.lower()))
 
         matches.sort()
         return {
