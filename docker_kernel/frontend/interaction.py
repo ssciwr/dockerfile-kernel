@@ -26,10 +26,8 @@ class FrontendInteraction():
     def _execute_helper(self, hook:str):
         """Executes the helper frontend.
 
-        #TODO: Refernce herlper frontend for Sphinx documentation
-
         Args:
-            hook (str): _description_
+            hook (str): Hook for the website.
         """
         self.app.commands.execute("helper:open", {"hook": hook})
     

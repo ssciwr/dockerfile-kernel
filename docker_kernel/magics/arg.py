@@ -9,7 +9,6 @@ from .helper.types import FlagDict
 class Arg(Magic):
     """Manipulate Build Arguments
     
-    #TODO: Reference to Magic tutorial in Sphinx
     """
     def __init__(self, kernel, *args, **flags):
         super().__init__(kernel, *args, **flags)
@@ -68,8 +67,6 @@ class Arg(Magic):
     def _remove_argument(self, *names: str):
         """Remove *build arguments* from `DockerKernel`.
 
-        #TODO: Add reference to `DockerKernel` for Sphinx
-
         Args:
             *names (tuple[str]): The names of the *build arguments* to be removed.
         """
@@ -90,8 +87,6 @@ class Arg(Magic):
 
     def _list_argument(self, *names: str):
         """List (specified) *build arguments* of `kernel.DockerKernel`.
-
-        #TODO: Add reference to `kernel.DockerKernel` for Sphinx
 
         Args:
             *names (tuple[str]): The names of the *build arguments* to be listed.

@@ -6,8 +6,6 @@ from .helper.types import FlagDict
 
 class Install(Magic):
     """Install additional packages to the Docker image.
-    
-    #TODO: Reference to Magic tutorial in Sphinx
     """
     def __init__(self, kernle, *args, **flags):
         super().__init__(kernle, *args, **flags)

@@ -6,8 +6,6 @@ class FlagDict(TypedDict):
 	- *short*, if provided, will be an abbreviation for this flag
 	- *default*, if provided, will be the default value for this flag
 	- *desc*, is a description of the flag
-	
-    #TODO: Add reference to Magic class for Sphinx 
 	"""
 	short: str | None
 	default: Any | None
