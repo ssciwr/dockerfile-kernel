@@ -38,7 +38,6 @@ jobs:
       with:
         docker_version: "20.10"
         docker_channel: "stable"
-    #tbd: Is the user in the docker group?
 
     - name: Install jupyterlab
       run: python -m pip install jupyterlab
@@ -51,6 +50,9 @@ jobs:
 
     - name: Install nodejs
       run: python -m pip install nodejs
+
+    - name: Install pytest
+      run: python -m pip install prettytable
 
     - name: Change to repository folder
       run: cd $GITHUB_WORKSPACE

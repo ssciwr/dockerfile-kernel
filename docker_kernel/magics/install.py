@@ -6,8 +6,6 @@ from .helper.types import FlagDict
 
 class Install(Magic):
     """Install additional packages to the Docker image.
-    
-    #TODO: Reference to Magic tutorial in Sphinx
     """
     def __init__(self, kernle, *args, **flags):
         super().__init__(kernle, *args, **flags)
@@ -42,6 +40,6 @@ class Install(Magic):
                 self._kernel.send_response("Package manager not available (currently available: apt(-get), conda, conda-forge, npm, pip)")
         
         if code is not None:
-            self._kernel.payload = ("set_next_input", code.format(newLine = "&&\n\t "), True)
+            self._kernel.payload = ("set_next_input", code.format(newLine = "&&\\\n\t "), True)
             code = self._kernel.create_build_stage(code.format(newLine = "&& "))
             self._kernel.build_image(code)

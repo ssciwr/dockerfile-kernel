@@ -9,14 +9,13 @@ from .helper.types import FlagDict
 class Arg(Magic):
     """Manipulate Build Arguments
     
-    #TODO: Reference to Magic tutorial in Sphinx
     """
     def __init__(self, kernel, *args, **flags):
         super().__init__(kernel, *args, **flags)
 
     @staticmethod
     def REQUIRED_ARGS() -> tuple[list[str], int]:
-        return ([], 0)
+        return (["command"], 1)
     
     @staticmethod
     def ARGS_RULES() -> dict[int, tuple[Callable[[str], bool], str]]:
@@ -38,22 +37,24 @@ class Arg(Magic):
         }
     
     def _execute_magic(self) -> None:
-        for short in self._shorts.keys():
-            match short.lower():
-                case "rm":
-                    self._remove_argument(self._shorts[short])
-                case "ls":
-                    self._list_argument(self._shorts[short])
-
-        for flag in self._flags.keys():
-            match flag.lower():
-                case "remove":
-                    self._remove_argument(self._flags[flag])
-                case "list":
-                    self._list_argument(self._flags[flag])
-
         if self._args:
             for arg in self._args:
+                match arg.lower():
+                    case "rm" | "remove":
+                        if len(self._args) == 1:
+                            self._remove_argument()
+                            return
+                        self._kernel.send_response(self._args)
+                        self._remove_argument(*self._args[1:])
+                        return
+                    case "ls" | "list":
+                        if len(self._args) == 1:
+                            self._list_argument()
+                            return
+                        self._kernel.send_response(self._args)
+                        self._list_argument(*self._args[1:])
+                        return
+
                 if not re.match("^[^\s]+=[^\s]+$", arg):
                     raise MagicError(f"'{arg}' does not match input format, expected format: '<name>=<value>'")
 
@@ -61,17 +62,15 @@ class Arg(Magic):
                 name, value = arg.split("=")
                 self._kernel._buildargs.update({name: value})
                 self._kernel.send_response(f"Build argument '{name}' set to '{value}'\n")
-            self._list_argument("all")
+            self._list_argument()
 
     def _remove_argument(self, *names: str):
         """Remove *build arguments* from `DockerKernel`.
 
-        #TODO: Add reference to `DockerKernel` for Sphinx
-
         Args:
             *names (tuple[str]): The names of the *build arguments* to be removed.
         """
-        if names[0] == "all":
+        if len(names) == 0:
             self._kernel.remove_buildargs()
             self._kernel.send_response("All build arguments removed\n")  
         else:
@@ -89,13 +88,11 @@ class Arg(Magic):
     def _list_argument(self, *names: str):
         """List (specified) *build arguments* of `kernel.DockerKernel`.
 
-        #TODO: Add reference to `kernel.DockerKernel` for Sphinx
-
         Args:
             *names (tuple[str]): The names of the *build arguments* to be listed.
         """
-        buildargs = self._kernel._buildargs
-        if names[0] == "all":
+        buildargs = self._kernel.buildargs
+        if len(names) == 0:
             if not buildargs:
                 self._kernel.send_response("No current build arguments")
             else:

@@ -17,14 +17,9 @@ from .helper.types import FlagDict
 
 class Magic(ABC):
     """Abstract class as base for a *Magic* command
-
-    #TODO: Add reference to the Magics instructions in Sphinx
     """
     def __init__(self, kernel: DockerKernel, *args: str, **flags: str):
-        """_summary_
-
-        #TODO: Add references to DockerKernel for Sphinx
-
+        """
         Args:
             kernel (DockerKernel): Current instance of the `DockerKernel`
             *args (tuple[str, ...]): Arguments passed to the *Magic* command
@@ -50,8 +45,7 @@ class Magic(ABC):
     @abstractmethod
     def ARGS_RULES() -> dict[int, list[tuple[Callable[[str], bool], str]]]:
         """*(abstract, static)* Conditions individual arguments must meet.
-        
-        #TODO: Reference REQUIRED_ARGS for Sphinx
+
         Returns:
             dict[int, list[tuple[Callable[[str], bool], str]]]: Dictionary assigning a list of conditions and corresponding error message to an argument.
                 The argument is specified by its index in the `REQUIRED_ARGS` list.
@@ -62,8 +56,6 @@ class Magic(ABC):
     @abstractmethod
     def VALID_FLAGS() -> dict[str, FlagDict]:
         """*(abstract, static)* Flags that are accepted by the *Magic*.
-
-        #TODO: Reference FlagDict for Sphinx
 
         Returns:
             dict[str, FlagDict]: Assigns each flag a `FlagDict`
@@ -77,7 +69,6 @@ class Magic(ABC):
         Args:
             code (str): The user's code.
 
-        #TODO: Add refernce to Magic for Sphinx
         Returns:
             tuple(Magic, tuple[str], dict[str, str]) | tuple(None, None, None): The *Magic* found in the code with all its *args* and *flags* as well as the flags values.
                 Or `None` for all if no *Magic* was found.
@@ -123,13 +114,10 @@ class Magic(ABC):
 
         Args:
             name (str): Name of the *Magic*.
-    
-        #TODO: Add refernce to MagicError for Sphinx
             
         Raises:
             MagicError: No *Magic* found for *name*.
 
-        #TODO: Add refernce to Magic for Sphinx 
         Returns:
             Type[Magic] | None: *Magic* found for *name*. Or `None` if potential name didn't start with a %.
         """
@@ -159,8 +147,6 @@ class Magic(ABC):
     @staticmethod
     def do_complete(code: str, cursor_pos: int) -> list[str]:
         """*(static)* Provide *Magic* specific code completion for the `kernel.do_complete` method.
-
-        #TODO: Add kernel.do_complete reference for Sphinx
 
         Args:
             code (str): The user's code.
@@ -250,8 +236,6 @@ class Magic(ABC):
 
     def _find_invalid_flags(self):
         """Raise error when a *flag* is not valid.
-
-        #TODO: Add refernce to MagicError for Sphinx
 
         Raises:
             MagicError: The *flag* is not known.

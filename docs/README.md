@@ -1,4 +1,4 @@
-# Sphinx Documentaion for DockerKernel
+# Sphinx Documentation for DockerKernel
 
 #### Install dependencies
 - `pip install sphinx`

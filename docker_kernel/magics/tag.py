@@ -8,9 +8,6 @@ from.helper.types import FlagDict
 
 class Tag(Magic):
     """Save Docker image with a name and tag in the `kernel.DockerKernel`.
-    
-    #TODO: Add reference to `kernel.DockerKernel` for Sphinx
-    #TODO: Reference to Magic tutorial in Sphinx
     """
     def __init__(self, kernle, *args, **flags):
         super().__init__(kernle, *args, **flags)

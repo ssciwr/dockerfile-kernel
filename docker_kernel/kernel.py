@@ -41,8 +41,8 @@ class DockerKernel(Kernel):
     banner = "Dockerfile Kernel"
 
     # source of keywords: https://docs.docker.com/engine/reference/builder/
-    keywords = {"ARG": [], "ADD": ["--chown=", "--chmod=", "--checksum=", "--keep-git-dir=true", "--link"], "CMD": [], "ENV": [], "COPY": ["--chown=", "--chmod=", "--from=", "--link"], "ENTRYPOINT": [], "FROM": ["AS ", "--platform="], "EXPOSE": [], "HEALTHCHECK": ["--intervall=", "--timeout=", "--start-period=", "--start-interval=", "--retries="],
-                "LABEL": [], "ONBUILD": [], "RUN": ["--mount=", "--network", "--privileged", "--security", "--mount=type=bind", "--mount=type=cache", "--mount=type=tmpfs", "--mount=type=secret", "--mount=type=ssh", "--network=default", "--network=none", "--network=host", "--security=insecure", "--security=sandbox"], "SHELL": [], "STOPSIGNAL": [], "USER": [], "VOLUME": [], "WORKDIR": []}
+    keywords = {"ARG": ["<name>[=<default value>]"], "ADD": ["[--chown=<user>:<group>] [--chmod=<perms>] [--checksum=<checksum>] <src>... <dest>", '[--chown=<user>:<group>] [--chmod=<perms>] ["<src>",... "<dest>"]', "--checksum=", "[--keep-git-dir=<boolean>] <git ref> <dir>", "--link"], "CMD": ['["executable","param1","param2"]', '["param1","param2"]', "command param1 param2"], "ENV": ["<key>=<value> ..."], "COPY": ["[--chown=<user>:<group>] [--chmod=<perms>] <src>... <dest>", '[--chown=<user>:<group>] [--chmod=<perms>] ["<src>",... "<dest>"]', "-from=<name>", "--link"], "ENTRYPOINT": ['["executable", "param1", "param2"]', "command param1 param2"], "EXPOSE": ["<port> [<port>/<protocol>...]"], "FROM": ["[--platform=<platform>] <image> [AS <name>]", "[--platform=<platform>] <image>[:<tag>] [AS <name>]", "[--platform=<platform>] <image>[@<digest>] [AS <name>]"], "HEALTHCHECK": ["[OPTIONS] CMD command", "NONE", "--intervall=", "--timeout=", "--start-period=", "--start-interval=", "--retries="],
+                "LABEL": ["<key>=<value> ..."], "ONBUILD": ["<INSTRUCTION>"], "RUN": ["--mount=", "--network", "--privileged", "--security", "--mount=type=bind", "--mount=type=cache", "--mount=type=tmpfs", "--mount=type=secret", "--mount=type=ssh", "--network=default", "--network=none", "--network=host", "--security=insecure", "--security=sandbox"], "SHELL": ['["executable", "parameters"]'], "STOPSIGNAL": ["signal"], "USER": ["<user>[:<group>]", "<UID>[:<GID>]"], "VOLUME": ['["/data"]'], "WORKDIR": ["/path/to/workdir"]}
 
     def __init__(self, *args, **kwargs):
         """Initialize the kernel."""
@@ -204,13 +204,10 @@ class DockerKernel(Kernel):
             matches.extend(Magic.do_complete(code, cursor_pos))
 
         # Docker command completion
-        if line_start not in self.keywords:
-            matches.extend(k for k in self.keywords if k.startswith(
-                partial_word.upper()))
-        else:
-            matches.extend(flag for flag in self.keywords[line_start] if flag.startswith(
-                partial_word.lower()
-            ))
+        elif line_start not in self.keywords and not line_start.startswith("%"):
+            matches.extend(k for k in self.keywords if k.startswith(partial_word.upper()))
+        elif line_start in self.keywords:
+            matches.extend(flag for flag in self.keywords[line_start] if flag.startswith(partial_word.lower()))
 
         matches.sort()
         return {
@@ -343,6 +340,7 @@ class DockerKernel(Kernel):
                 self._buildargs.pop(name)
         else:
             self._buildargs = {}
+
 
     def change_build_context_directory(self, source_dir: str):
         """Change the build context that is used by Docker.
