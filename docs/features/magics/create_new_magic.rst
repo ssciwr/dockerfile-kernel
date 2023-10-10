@@ -37,7 +37,7 @@ The ``Magic`` class provides four methods to be overwritten.
             return {}
 
         @staticmethod
-        def VALID_OPTIONS():
+        def VALID_FLAGS():
             return {}
 
         def _execute_magic(self):
@@ -108,7 +108,7 @@ Set `short name` / `default` to ``None`` if they should be left out.
 .. code-block:: python
 
     @staticmethod
-    def VALID_OPTIONS():
+    def VALID_FLAGS():
         return {
             "results": {
                 "short": "r",
@@ -185,7 +185,7 @@ required arguments...
             }
 
         @staticmethod
-        def VALID_OPTIONS():
+        def VALID_FLAGS():
             return {
                 "results": {
                     "short": "r",
