@@ -2,10 +2,8 @@ import os
 import shutil
 from typing import Callable, Iterable
 
-def create_dockerfile(code: str, directory: str, filename="Dockerfile"):
+def create_dockerfile(code: str, directory: str):
     """Create a *Dockerfile*
-    
-    #TODO: Remove filename (not used)
 
     Args:
         code (str): The *Dockerfile* code.
@@ -16,7 +14,7 @@ def create_dockerfile(code: str, directory: str, filename="Dockerfile"):
     Returns:
         str: Path of the created *Dockerfile*
     """
-    dockerfile_path = os.path.join(directory, filename)
+    dockerfile_path = os.path.join(directory, "Dockerfile")
     with open(dockerfile_path, 'w+') as dockerfile:
         dockerfile.write(code)
     return dockerfile_path
@@ -29,8 +27,6 @@ def copy_files(src: str, dest: str, ignore: Callable[[str, list[str]], Iterable[
         dest (str): Path of destination directory.
         ignore (Callable[[str, list[str]], Iterable[str]] | None, optional): Ignore callable for [shutil.copytree](https://docs.python.org/3/library/shutil.html#shutil.copytree)
             Defaults to None.
-
-    #TODO: Don't return error, only message. Or figure out something better
         
     Returns:
         bool | Error : Returns `True` if copying was successfull, else an Error.
@@ -46,8 +42,6 @@ def empty_dir(dir_path: str):
 
     Args:
         dir_path (str): Path of directory to be emtied.
-
-    #TODO: Don't return error, only message. Or figure out something better
 
     Returns:
         bool | Error : Returns `True` if emptying was successfull, else an Error.

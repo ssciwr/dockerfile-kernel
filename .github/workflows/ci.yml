@@ -65,5 +65,8 @@ jobs:
     - name: Install the kernel
       run: python docker_kernel/install.py
 
+    - name: change to test dir
+      run: cd test
+
     - name: Run tests
       run: pytest

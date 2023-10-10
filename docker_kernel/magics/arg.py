@@ -23,8 +23,19 @@ class Arg(Magic):
         return {}
     
     @staticmethod
-    def VALID_OPTIONS() -> dict[str, FlagDict]:
-        return         {}
+    def VALID_FLAGS() -> dict[str, FlagDict]:
+        return         {
+            "remove": {
+                "short": "rm",
+                "default": "all",
+                "desc": "Remove the build argument specified by name"
+            },
+            "list": {
+                "short": "ls",
+                "default": "all",
+                "desc": "List the build argument(s) specified by name"
+            }
+        }
     
     def _execute_magic(self) -> None:
         if self._args:
@@ -50,7 +61,7 @@ class Arg(Magic):
 
             for arg in self._args:
                 name, value = arg.split("=")
-                self._kernel.buildargs = {name: value}
+                self._kernel._buildargs.update({name: value})
                 self._kernel.send_response(f"Build argument '{name}' set to '{value}'\n")
             self._list_argument()
 
@@ -68,7 +79,7 @@ class Arg(Magic):
         else:
             response = ""
             for name in names:
-                if name in self._kernel.buildargs.keys():
+                if name in self._kernel._buildargs.keys():
                     response = response + f"Build argument '{name}' removed\n"
                     continue
                 else:
