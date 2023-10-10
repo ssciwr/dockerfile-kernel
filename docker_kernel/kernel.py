@@ -227,7 +227,7 @@ class DockerKernel(Kernel):
             matches.extend(Magic.do_complete(code, cursor_pos))
 
         # Docker command completion
-        if line_start not in self.keywords and not line_start.startswith("%"):
+        elif line_start not in self.keywords and not line_start.startswith("%"):
             matches.extend(k for k in self.keywords if k.startswith(
                 partial_word.upper()))
         else:
