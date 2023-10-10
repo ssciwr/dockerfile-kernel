@@ -9,7 +9,7 @@ To set Build Arguments:
 
 .. code-block::
 
-    %arg <key>=<value> (<key2>=<value2> <key3>=<value3> ...)
+    %arg <name>=<value> (<name2>=<value2> <name3>=<value3> ...)
 
 
 To list current Build Arguments (default lists all):
@@ -17,7 +17,7 @@ To list current Build Arguments (default lists all):
 .. code-block::
 
     %arg list
-    %arg ls <key> (<key1> <key2> ...)
+    %arg ls <name> (<name1> <name2> ...)
 
 
 To remove current Build Arguments (default removes all)
@@ -25,7 +25,7 @@ To remove current Build Arguments (default removes all)
 .. code-block::
 
     %arg remove
-    %arg rm <key> (<key1> <key2> ...)
+    %arg rm <name> (<name1> <name2> ...)
 
 
 
