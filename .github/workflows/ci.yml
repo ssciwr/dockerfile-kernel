@@ -64,4 +64,5 @@ jobs:
       run: python docker_kernel/install.py
 
     - name: Run tests
+      run: cd test
       run: pytest
