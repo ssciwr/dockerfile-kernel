@@ -51,13 +51,17 @@ jobs:
     - name: Change to repository folder
       run: cd $GITHUB_WORKSPACE
 
-    - name: Install Python package
+    - name: Install Docker-Kernel
       run: |
         python -m pip install -e .
-        python -m pip install -e ./docker_extension
 
-    - name: Install the kernel
+    - name: Run the installation
       run: python docker_kernel/install.py
+
+    - name: Install frontend extensions
+      run: |
+        python -m pip install -e ./docker_extension
+        python -m pip install -e ./docker_extension/export/
 
     - name: change to test dir
       run: cd ./test
