@@ -1,5 +1,3 @@
-# This is the reference dockerfile against which the mymagic_magic.dockerfile is tested
-
 FROM node:current-alpine
 
 WORKDIR /usr/app
