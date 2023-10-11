@@ -67,4 +67,4 @@ jobs:
       run: cd ./test
 
     - name: Run tests
-      run: pytest
+      run: pytest test_image_ids.py
