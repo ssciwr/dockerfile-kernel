@@ -63,11 +63,7 @@ jobs:
         python -m pip install -e ./docker_extension
         python -m pip install -e ./docker_extension/export/
 
-    - name: Debugging
-      run: pwd
-
-    - name: change to test dir
-      run: cd ./test
-
-    - name: Debugging
-      run: pwd
+    - name: Run tests
+      run: |
+        cd $GITHUB_WORKSPACE/test
+        pytest test_image_ids.py
