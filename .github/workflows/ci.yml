@@ -45,28 +45,26 @@ jobs:
     - name: Install pytest
       run: python -m pip install pytest
 
-    - name: Install ipylab
-      run: python -m pip install ipylab
-
     - name: Install nodejs
       run: python -m pip install nodejs
-
-    - name: Install pytest
-      run: python -m pip install prettytable
 
     - name: Change to repository folder
       run: cd $GITHUB_WORKSPACE
 
-    - name: Install Python package
+    - name: Install Docker-Kernel
       run: |
         python -m pip install -e .
-        python -m pip install -e ./docker_extension
 
-    - name: Install the kernel
+    - name: Run the installation
       run: python docker_kernel/install.py
 
-    - name: change to test dir
-      run: cd test
+    - name: Install frontend extensions
+      run: |
+        python -m pip install -e ./docker_extension
+        python -m pip install -e ./docker_extension/export/
 
     - name: Run tests
-      run: pytest
+      run: |
+        cd $GITHUB_WORKSPACE/test
+        pytest test_image_ids.py
+        pytest test_magics.py
