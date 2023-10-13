@@ -1,0 +1,18 @@
+# Changes here will be overwritten by Copier; NEVER EDIT MANUALLY
+_commit: v4.2.2
+_src_path: https://github.com/jupyterlab/extension-template
+author_email: ssc@iwr.uni-heidelberg.de
+author_name: Dominic Kempf
+data_format: string
+file_extension: ''
+has_binder: false
+has_settings: false
+kind: server
+labextension_name: dockerfile_kernel
+mimetype: ''
+mimetype_name: ''
+project_short_description: A Dockerfile kernel for JupyterLab
+python_name: dockerfile_kernel
+repository: git@github.com:ssciwr/dockerfile-kernel.git
+test: false
+viewer_name: ''

@@ -6,4 +6,4 @@ Docstrings
    :template: custom-module-template.rst
    :recursive:
 
-   docker_kernel
+   dockerfile_kernel

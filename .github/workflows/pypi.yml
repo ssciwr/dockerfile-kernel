@@ -1,0 +1,23 @@
+name: PyPI deploy
+
+on:
+  release:
+    types:
+      - published
+  workflow_dispatch:
+
+jobs:
+  pypi-deploy:
+    name: Deploying Python Package
+    runs-on: ubuntu-22.04
+    permissions:
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Build source distribution
+        run: |
+          pipx run build --sdist
+
+      - uses: pypa/gh-action-pypi-publish@release/v1

@@ -35,7 +35,7 @@ The notebook
 Will result in this Dockerfile
 
 .. code-block:: docker
-   
+
     FROM ubuntu
 
     #mg %magics
