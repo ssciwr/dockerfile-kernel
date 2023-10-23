@@ -37,15 +37,15 @@ Installation
    $ git clone https://github.com/MarvinWeitz/dockerfile-kernel.git
    $ cd dockerfile-kernel
    $ python -m pip install -e .
-   $ python docker_kernel/install.py
+   $ python -m dockerfile_kernel.install
 
 .. _installation_frontend:
-Installation frontend extensions *(optional)* 
+Installation frontend extensions *(optional)*
 +++++++++++++++++++++++++++
 :ref:`Node.js required <node_req>`
 
 .. code-block:: console
-   
+
    $ python -m pip install -e ./docker_extension
    $ python -m pip install -e ./docker_extension/export/
 
@@ -70,7 +70,7 @@ Please make sure that you have enough space available to copy the
 :doc:`build context <./features/magics/context>` directory or use a
 :ref:`dockerignore <dockerignore>` file to limit the build context.
 
-Restraints 
+Restraints
 ++++++++++
 There are some features of Docker that are not (yet) working with the Dockerfile Kernel:
 

@@ -1,0 +1,23 @@
+{
+  "title": "Launcher Example",
+  "description": "Launcher Example settings.",
+  "jupyter.lab.menus": {
+    "main": [
+      {
+        "id": "jp-mainmenu-file",
+        "items": [
+          {
+            "command": "docker:import",
+            "rank": 1
+          },
+          {
+            "command": "docker:build_context",
+            "rank": 1
+          }
+        ]
+      }
+    ]
+  },
+  "additionalProperties": false,
+  "type": "object"
+}

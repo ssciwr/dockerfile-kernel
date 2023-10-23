@@ -31,7 +31,7 @@ The ``Magic`` class provides four methods to be overwritten.
         @staticmethod
         def REQUIRED_ARGS():
             return ([], 0)
-            
+
         @staticmethod
         def ARGS_RULES():
             return {}
@@ -193,7 +193,7 @@ required arguments...
                     "desc": "Determines the number of results"
                 }
             }
-        
+
         def _execute_magic(self):
             stop = int(self._args[0])
             start = int(self._get_default_arg(1, "0"))

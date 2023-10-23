@@ -19,52 +19,47 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        python-version: ["3.11"]
+        python-version: ['3.11']
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
-      with:
-        # setuptools_scm requires a non-shallow clone of the repository
-        fetch-depth: 0
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          # setuptools_scm requires a non-shallow clone of the repository
+          fetch-depth: 0
 
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ matrix.python-version }}
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
 
-    - name: Set up Docker
-      uses: docker-practice/actions-setup-docker@master
-      with:
-        docker_version: "20.10"
-        docker_channel: "stable"
+      - name: Set up Docker
+        uses: docker-practice/actions-setup-docker@master
+        with:
+          docker_version: '20.10'
+          docker_channel: 'stable'
 
-    - name: Install jupyterlab
-      run: python -m pip install jupyterlab
-    
-    - name: Install pytest
-      run: python -m pip install pytest
+      - name: Install jupyterlab
+        run: python -m pip install jupyterlab
 
-    - name: Install nodejs
-      run: python -m pip install nodejs
+      - name: Install pytest
+        run: python -m pip install pytest
 
-    - name: Change to repository folder
-      run: cd $GITHUB_WORKSPACE
+      - name: Install nodejs
+        run: python -m pip install nodejs
 
-    - name: Install Docker-Kernel
-      run: |
-        python -m pip install -e .
+      - name: Change to repository folder
+        run: cd $GITHUB_WORKSPACE
 
-    - name: Run the installation
-      run: python docker_kernel/install.py
+      - name: Install Docker-Kernel
+        run: |
+          python -m pip install -e .
 
-    - name: Install frontend extensions
-      run: |
-        python -m pip install -e ./docker_extension
-        python -m pip install -e ./docker_extension/export/
+      - name: Run the installation
+        run: python -m dockerfile_kernel.install
 
-    - name: Run tests
-      run: |
-        cd $GITHUB_WORKSPACE/test
-        pytest test_image_ids.py
-        pytest test_magics.py
+      - name: Run tests
+        run: |
+          cd $GITHUB_WORKSPACE/test
+          pytest test_image_ids.py
+          pytest test_magics.py
