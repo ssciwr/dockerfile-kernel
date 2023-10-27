@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "dockerfile_kernel"
-version = "0.1.1"
+version = "0.1.2"
 authors = [
     {name="Dominic Kempf", email="dominic.kempf@iwr.uni-heidelberg.de"},
     {name="Marvin Weitz"},

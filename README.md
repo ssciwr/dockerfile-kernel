@@ -30,6 +30,7 @@ With pip:
 
 ```bash
 python -m pip install dockerfile-kernel
+python -m dockerfile_kernel.install
 ```
 
 With conda:
