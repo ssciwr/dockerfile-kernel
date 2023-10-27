@@ -33,7 +33,7 @@ python -m pip install dockerfile-kernel
 python -m dockerfile_kernel.install
 ```
 
-With conda:
+With conda (soon!):
 
 ```bash
 conda install -c conda-forge dockerfile-kernel
